@@ -1,0 +1,39 @@
+﻿@model IEnumerable<ExpenseLog.Models.ExpenseType>
+
+@{
+    ViewBag.Title = "ExpenseTypes";
+}
+
+<h2>Expense Types</h2>
+
+
+<hr />
+
+<table class="table table-striped table-bordered table-hover table-sm">
+    <tr>
+        <th style="width:10px">
+
+            @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+
+
+    </tr>
+
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td>
+            <!-- Edit Button -->
+            @Html.ActionLink("[]", "Edit", "ExpenseType", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Type" })
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Title)
+        </td>
+
+    </tr>
+    }
+
+</table>

@@ -1,0 +1,39 @@
+﻿@model IEnumerable<ExpenseLog.Models.ExpenseEntity>
+
+@{
+    ViewBag.Title = "Expense Entities";
+}
+
+<h2>Expense Entities</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table table-striped">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.ExpenseEntityName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ExpenseEntityDescription)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.ExpenseEntityName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ExpenseEntityDescription)
+        </td>
+        <td>
+            @Html.ActionLink("E", "Edit", new { id = item.ID }) |
+            <!-- @Html.ActionLink("Details", "Details", new { id=item.ID }) |-->
+            @Html.ActionLink("D", "Delete", new { id = item.ID })
+        </td>
+    </tr>
+}
+
+</table>

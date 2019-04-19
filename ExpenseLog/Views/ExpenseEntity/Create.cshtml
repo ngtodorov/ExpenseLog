@@ -1,0 +1,66 @@
+﻿@model ExpenseLog.Models.ExpenseEntity
+
+@{
+    ViewBag.Title = "Create";
+}
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+<div class="form-horizontal">
+    <h4>Create Expense Entity</h4>
+    <hr />
+
+    <form class="navbar-form navbar-left px-4 py-3">
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseTypeID, "Type", htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.DropDownList("ExpenseTypeID", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ExpenseTypeID, "", new { @class = "text-danger" })
+                @Html.ValidationMessageFor(model => model.ExpenseType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseEntityName, htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.EditorFor(model => model.ExpenseEntityName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ExpenseEntityName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseEntityDescription, htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.EditorFor(model => model.ExpenseEntityDescription, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ExpenseEntityDescription, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+
+
+        <hr />
+
+        <div class="form-row">
+            <div class="col input-group-sm">
+                <div class="col-md-offset-2 col-md-10">
+                    <!-- Submit Button -->
+                    <input type="submit" value="Create" class="btn btn-outline-primary btn-sm" />
+                    <!-- Cancel Button -->
+                    @Html.ActionLink("Cancel", "Index", "ExpenseEntity", null, new { @class = "btn btn-outline-primary btn-sm" })
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+</div>
+}
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

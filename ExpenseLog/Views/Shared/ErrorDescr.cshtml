@@ -1,0 +1,14 @@
+﻿@{
+    
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<strong>
+    An error occurred while processing your request:
+</strong>
+   <label style="color:red">@ViewBag.Title</label> 
+
+    <br />
+    <label style="color:red">@ViewData["message"]</label>
+<br />
+    <strong>Stack Trace</strong> <br />
+    @ViewData["trace"]

@@ -1,0 +1,197 @@
+﻿@model ExpenseLog.Models.ExpenseRecord
+@{
+    ViewBag.Title = "Edit";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { enctype = "multipart/form-data", id = "formExpenseRecord" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("attachmentsJson", "")
+    @Html.Hidden("userID", (object)ViewBag.UserID)
+    @Html.Hidden("attachmentUploadWebAPIUrl",(object)ViewBag.AttachmentUploadWebAPIUrl)
+
+    <div class="form-horizontal">
+        <h4>Edit Expense Record</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ExpenseRecordID)
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseTypeID, "Type", htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.DropDownList("expenseTypeID", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ExpenseTypeID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseEntityID, "Entity", htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.DropDownList("expenseEntityID", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ExpenseEntityID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseDate, htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.EditorFor(model => model.ExpenseDate, new { htmlAttributes = new { @class = "form-control", @data_provide = "datepicker" } })
+                @Html.ValidationMessageFor(model => model.ExpenseDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpensePrice, htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.EditorFor(model => model.ExpensePrice, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ExpensePrice, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpenseDescription, htmlAttributes: new { @class = "control-label col-md-2", @style = "color:blue" })
+            <div class="col-md-4">
+                @Html.TextAreaFor(model => model.ExpenseDescription, 4, 45, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ExpenseDescription, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="col input-group-sm">
+                <div class="col-md-offset-2 col-md-10">
+                    <!-- Submit Button -->
+                    <input type="submit" id="buttonSubmit" value="Submit" class="btn btn-outline-primary btn-sm" />
+                    <!-- Cancel Button -->
+                    @Html.ActionLink("Cancel", "Index", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm" })
+                    <!-- Delete Button -->
+                    @Html.ActionLink("Delete", "Delete", "ExpenseRecord", new { id = Model.ExpenseRecordID }, new { @class = "btn btn-outline-primary btn-sm", title = "Delete Record", onclick = "return confirm('Are you sure you wish to delete this Expense Record?');" })
+                    <!-- Select Files and Upload: Displays a 'Select Files' button that uses a File Upload control to select files to be uploaded and calls the JS function: DisplayFilesToUpload() that lists the file name and size for all files to be uploaded.                   -->
+                    <input type="file" id="file" name="selectFiles" class="btn btn-outline-primary btn-sm" onchange="DisplayFilesToUpload()" multiple accept=".png,.jpg,.jpeg,.gif,.tif,.tiff,.bmp" />
+                </div>
+            </div>
+        </div>
+
+        <hr />
+
+        <!--
+        --------------------------------------------------------------------------------------------------------------------------------------------
+        -------------------------------------------------------  ATTACHMENTS BEGIN -----------------------------------------------------------------
+        --------------------------------------------------------------------------------------------------------------------------------------------
+        -->
+@* This gets populated from the DisplayFilesToUpload() JS function*@
+    <p id="FilesToUpload"></p>
+    @if (ViewBag.ExpenseAttachmentUris != null && ViewBag.ExpenseAttachmentUris.Count > 0)
+            {
+
+    <div class="row">
+        <div class="column" style="color:blue">@Model.ExpenseAttachments.Count Attachments:</div>
+        <div class="column" id="FilesToDeleteLabel" style="color:red"></div>
+    </div>
+    <!-- Images used to open the lightbox -->
+    <div class="row">
+        @{
+                                for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                                {
+            <div class="column">
+                <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
+                <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
+            </div>
+                                }
+        }
+    </div>
+
+    <!-- The Modal/Lightbox -->
+    <div id="myModal" class="modal">
+        <span class="close cursor" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            @{
+
+                                        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                                        {
+                <div class="mySlides">
+                    <div class="numbertext">@i / @ViewBag.ExpenseAttachmentUris.Count</div>
+                    <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%">
+                </div>
+                                        }
+            }
+
+            <!-- Next/previous controls -->
+            <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+            <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            <!-- Caption text -->
+            <div class="caption-container">
+                <p id="caption"></p>
+            </div>
+
+        </div>
+    </div>
+
+    @Html.Hidden("FilesToDelete")
+            }
+    <!--
+    --------------------------------------------------------------------------------------------------------------------------------------------
+    -------------------------------------------------------  ATTACHMENTS  END ------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------------------------------
+    -->
+
+    </div>
+}
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/Scripts/custom/lightbox.js")
+    @Scripts.Render("~/Scripts/custom/customscripts.js")
+    <script>
+        //Lists the file name and size for all files to be uploaded by updating the <p id="FilesToUpload"></p> control
+        function DisplayFilesToUpload() {
+            var element = document.getElementById("file");
+            var html = "";
+
+            html = "<div style='color:blue'>Files To Upload:</div>";
+
+            for (var i = 0; i < element.files.length; i++) {
+
+                var file = element.files[i];
+                if ('name' in file) { html += file.name + " ("; }
+                if ('size' in file) { html += "size: " + Math.round(file.size / 1024) + " kB)<br>"; }
+            }
+            document.getElementById("FilesToUpload").innerHTML = html;
+        }
+
+        function markImageForDeletion(n) {
+
+            if (document.getElementById("FilesToDeleteLabel").innerHTML == "") {
+                document.getElementById("FilesToDeleteLabel").innerHTML = "Attachments to delete: ";
+            }
+
+            var img = "[" + n + "]";
+
+            var button = document.getElementById("deleteImageButton-" + n);
+            if (button.innerText == "X") {
+                button.innerText = "!";
+                button.style.color = "red";
+                button.style.font.bold();
+                button.title = "Marked for deletion. Click to restore"
+
+                if (document.getElementById("FilesToDelete").value.indexOf(img) < 0) {
+                    document.getElementById("FilesToDelete").value = document.getElementById("FilesToDelete").value + "[" + n + "]";
+                    document.getElementById("FilesToDeleteLabel").innerHTML = document.getElementById("FilesToDeleteLabel").innerHTML + "[" + n + "]";
+                }
+            }
+            else {
+                button.innerText = "X";
+                button.style.color = "blue";
+                button.title = "Click to delete attachment #" + n;
+
+                if (document.getElementById("FilesToDelete").value.indexOf(img) >= 0) {
+                    var str = document.getElementById("FilesToDelete").value;
+                    str = str.replace(img, "").trim();
+                    document.getElementById("FilesToDelete").value = str;
+
+                    document.getElementById("FilesToDeleteLabel").innerHTML = document.getElementById("FilesToDeleteLabel").innerHTML.replace("[" + n + "]", "");
+                }
+
+            }
+
+            if (document.getElementById("FilesToDeleteLabel").innerHTML.indexOf("[") < 0)
+                document.getElementById("FilesToDeleteLabel").innerHTML = "";
+
+        }
+
+    </script>
+
+
+}
