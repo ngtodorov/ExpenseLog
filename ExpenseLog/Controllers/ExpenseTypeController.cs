@@ -53,6 +53,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseType
+        [RequireHttps]
         [Authorize]
         public ActionResult Index()
         {
@@ -61,6 +62,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseType/Details/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Details(int? id)
         {
@@ -77,6 +79,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseType/Create
+        [RequireHttps]
         [Authorize]
         public ActionResult Create()
         {
@@ -86,6 +89,7 @@ namespace ExpenseLog.Controllers
         // POST: ExpenseType/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -103,6 +107,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseType/Edit/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Edit(int? id)
         {
@@ -121,6 +126,7 @@ namespace ExpenseLog.Controllers
         // POST: ExpenseType/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -137,6 +143,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseType/Delete/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Delete(int? id)
         {
@@ -167,8 +174,6 @@ namespace ExpenseLog.Controllers
                 //return View("ErrorDescr");
             }
         }
-
-
 
         protected override void Dispose(bool disposing)
         {

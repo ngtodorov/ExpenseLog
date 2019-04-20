@@ -17,6 +17,7 @@ namespace ContosoUniversity.Controllers
         private ExpenseLogContext db = new ExpenseLogContext();
 
         // GET: ExpenseEntity
+        [RequireHttps]
         [Authorize]
         public ActionResult Index(string sortOrder)
         {
@@ -47,6 +48,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: ExpenseEntity/Details/5
+        [RequireHttps]
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -62,6 +64,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: ExpenseEntity/Create
+        [RequireHttps]
         [Authorize]
         public ActionResult Create()
         {
@@ -73,6 +76,7 @@ namespace ContosoUniversity.Controllers
         // POST: ExpenseEntity/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -91,6 +95,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: ExpenseEntity/Edit/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Edit(int? id)
         {
@@ -111,6 +116,7 @@ namespace ContosoUniversity.Controllers
         // POST: ExpenseEntity/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -129,6 +135,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: ExpenseEntity/Delete/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Delete(int? id)
         {

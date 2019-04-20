@@ -31,6 +31,7 @@ namespace ExpenseLog.Controllers
         private ExpenseLogContext db = new ExpenseLogContext();
 
         // GET: ExpenseRecord
+        [RequireHttps]
         [Authorize]
         public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder)
         {
@@ -137,6 +138,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseRecord/Create
+        [RequireHttps]
         [Authorize]
         public ActionResult Create()
         {
@@ -159,6 +161,7 @@ namespace ExpenseLog.Controllers
         // POST: ExpenseRecord/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -201,6 +204,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseRecord/Edit/5
+        [RequireHttps]
         [Authorize]
         public ActionResult Edit(int? id)
         {
@@ -220,38 +224,11 @@ namespace ExpenseLog.Controllers
                 return View("ErrorDescr");
         }
 
-        private bool EditPrep(ExpenseRecord expenseRecord)
-        {
-            bool result = true;
-            try
-            {
-
-                SetViewBagVariables(expenseRecord);
-
-                #region Attachments
-
-                List<Uri> attachmentUris = new List<Uri>();
-                foreach (ExpenseAttachment attachment in expenseRecord.ExpenseAttachments.OrderBy(x => x.ID))
-                    if (!String.IsNullOrEmpty(attachment.ExpenseAttachmentUri))
-                        attachmentUris.Add(new Uri(attachment.ExpenseAttachmentUri));
-
-                ViewBag.ExpenseAttachmentUris = attachmentUris;
-
-                #endregion
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Title = "Expense Record";
-                ViewData["message"] = ex.GetBaseException().Message;
-                ViewData["trace"] = ex.StackTrace;
-                result = false;
-            }
-            return result;
-        }
 
         // POST: ExpenseRecord/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -289,38 +266,8 @@ namespace ExpenseLog.Controllers
             return View(expenseRecord);
         }
 
-        private async Task DeleteSelectedAttachmentFiles(ExpenseRecord expenseRecord)
-        {
-            if (Request["FilesToDelete"] != null)
-            {
-                string filesToDelete = Request["FilesToDelete"];
-                if (filesToDelete != String.Empty)
-                {
-                    int i = 0;
-                    List<ExpenseAttachment> attachmentsToDelete = new List<ExpenseAttachment>();
-                    List<ExpenseAttachment> expenseAttachments = db.ExpenseAttachments.SqlQuery($"SELECT * FROM dbo.ExpenseAttachment WHERE ExpenseRecordID={expenseRecord.ExpenseRecordID} ORDER BY ID").ToList<ExpenseAttachment>();
-                    foreach (ExpenseAttachment attachment in expenseAttachments)
-                    {
-                        i++;
-                        if (filesToDelete.Contains($"[{i}]"))
-                        {
-                            attachmentsToDelete.Add(attachment);
-                        }
-                    }
-
-                    //--- delete selected attachment files
-                    await DeleteAttachmentFiles(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
-
-                    //--- delete selected attachment records
-                    foreach (ExpenseAttachment attachment in attachmentsToDelete)
-                    {
-                        db.ExpenseAttachments.Remove(attachment);
-                    }
-                }
-            }
-        }
-
         // POST: ExpenseRecord/Delete/5
+        [RequireHttps]
         [Authorize]
         public async Task<ActionResult> Delete(int? id)
         {
@@ -366,6 +313,7 @@ namespace ExpenseLog.Controllers
         }
 
         // GET: ExpenseRecord/GetEntityListByType/5
+        [RequireHttps]
         [Authorize]
         public JsonResult GetEntityListByType(int expenseTypeID, string page)
         {
@@ -382,6 +330,7 @@ namespace ExpenseLog.Controllers
 
         // GET: ExportData :http://techfunda.com/howto/308/export-data-into-ms-excel-from-mvc
         [Authorize]
+        [RequireHttps]
         public ActionResult ExportToExcel()
         {
             // set the data source
@@ -534,6 +483,67 @@ namespace ExpenseLog.Controllers
             //--- Set Lists
             SetViewBagSelectLists(userId, expenseRecord);
         }
+
+        private async Task DeleteSelectedAttachmentFiles(ExpenseRecord expenseRecord)
+        {
+            if (Request["FilesToDelete"] != null)
+            {
+                string filesToDelete = Request["FilesToDelete"];
+                if (filesToDelete != String.Empty)
+                {
+                    int i = 0;
+                    List<ExpenseAttachment> attachmentsToDelete = new List<ExpenseAttachment>();
+                    List<ExpenseAttachment> expenseAttachments = db.ExpenseAttachments.SqlQuery($"SELECT * FROM dbo.ExpenseAttachment WHERE ExpenseRecordID={expenseRecord.ExpenseRecordID} ORDER BY ID").ToList<ExpenseAttachment>();
+                    foreach (ExpenseAttachment attachment in expenseAttachments)
+                    {
+                        i++;
+                        if (filesToDelete.Contains($"[{i}]"))
+                        {
+                            attachmentsToDelete.Add(attachment);
+                        }
+                    }
+
+                    //--- delete selected attachment files
+                    await DeleteAttachmentFiles(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
+
+                    //--- delete selected attachment records
+                    foreach (ExpenseAttachment attachment in attachmentsToDelete)
+                    {
+                        db.ExpenseAttachments.Remove(attachment);
+                    }
+                }
+            }
+        }
+        
+        private bool EditPrep(ExpenseRecord expenseRecord)
+        {
+            bool result = true;
+            try
+            {
+
+                SetViewBagVariables(expenseRecord);
+
+                #region Attachments
+
+                List<Uri> attachmentUris = new List<Uri>();
+                foreach (ExpenseAttachment attachment in expenseRecord.ExpenseAttachments.OrderBy(x => x.ID))
+                    if (!String.IsNullOrEmpty(attachment.ExpenseAttachmentUri))
+                        attachmentUris.Add(new Uri(attachment.ExpenseAttachmentUri));
+
+                ViewBag.ExpenseAttachmentUris = attachmentUris;
+
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Title = "Expense Record";
+                ViewData["message"] = ex.GetBaseException().Message;
+                ViewData["trace"] = ex.StackTrace;
+                result = false;
+            }
+            return result;
+        }
+
         #endregion
     }
 
