@@ -56,9 +56,9 @@
                     <!-- Submit Button -->
                     <input type="submit" id="buttonSubmit" value="Submit" class="btn btn-outline-primary btn-sm" />
                     <!-- Cancel Button -->
-                    @Html.ActionLink("Cancel", "Index", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm" })
+                    @Html.ActionLink("Cancel", "Index", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm", @id = "buttonCancel" })
                     <!-- Delete Button -->
-                    @Html.ActionLink("Delete", "Delete", "ExpenseRecord", new { id = Model.ExpenseRecordID }, new { @class = "btn btn-outline-primary btn-sm", title = "Delete Record", onclick = "return confirm('Are you sure you wish to delete this Expense Record?');" })
+                    @Html.ActionLink("Delete", "Delete", "ExpenseRecord", new { id = Model.ExpenseRecordID }, new { @class = "btn btn-outline-primary btn-sm", title = "Delete Record", onclick = "return confirm('Are you sure you wish to delete this Expense Record?');", @id = "buttonDelete" })
                     <!-- Select Files and Upload: Displays a 'Select Files' button that uses a File Upload control to select files to be uploaded and calls the JS function: DisplayFilesToUpload() that lists the file name and size for all files to be uploaded.                   -->
                     <input type="file" id="file" name="selectFiles" class="btn btn-outline-primary btn-sm" onchange="DisplayFilesToUpload()" multiple accept=".png,.jpg,.jpeg,.gif,.tif,.tiff,.bmp" />
                 </div>
@@ -73,25 +73,21 @@
         --------------------------------------------------------------------------------------------------------------------------------------------
         -->
 @* This gets populated from the DisplayFilesToUpload() JS function*@
-    <p id="FilesToUpload"></p>
+    <p id="FilesLabel"></p>
     @if (ViewBag.ExpenseAttachmentUris != null && ViewBag.ExpenseAttachmentUris.Count > 0)
-            {
+    {
 
-    <div class="row">
-        <div class="column" style="color:blue">@Model.ExpenseAttachments.Count Attachments:</div>
-        <div class="column" id="FilesToDeleteLabel" style="color:red"></div>
-    </div>
     <!-- Images used to open the lightbox -->
     <div class="row">
-        @{
-                                for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
-                                {
-            <div class="column">
-                <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
-                <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
-            </div>
-                                }
+    @{
+        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+        {
+        <div class="column">
+            <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
+            <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
+        </div>
         }
+    }
     </div>
 
     <!-- The Modal/Lightbox -->
@@ -100,13 +96,13 @@
         <div class="modal-content">
             @{
 
-                                        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
-                                        {
+                for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                {
                 <div class="mySlides">
                     <div class="numbertext">@i / @ViewBag.ExpenseAttachmentUris.Count</div>
                     <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%">
                 </div>
-                                        }
+                }
             }
 
             <!-- Next/previous controls -->
@@ -121,7 +117,7 @@
     </div>
 
     @Html.Hidden("FilesToDelete")
-            }
+    }
     <!--
     --------------------------------------------------------------------------------------------------------------------------------------------
     -------------------------------------------------------  ATTACHMENTS  END ------------------------------------------------------------------
@@ -148,47 +144,37 @@
                 if ('name' in file) { html += file.name + " ("; }
                 if ('size' in file) { html += "size: " + Math.round(file.size / 1024) + " kB)<br>"; }
             }
-            document.getElementById("FilesToUpload").innerHTML = html;
+            document.getElementById("FilesLabel").innerHTML = html;
         }
 
         function markImageForDeletion(n) {
-
-            if (document.getElementById("FilesToDeleteLabel").innerHTML == "") {
-                document.getElementById("FilesToDeleteLabel").innerHTML = "Attachments to delete: ";
-            }
-
             var img = "[" + n + "]";
 
             var button = document.getElementById("deleteImageButton-" + n);
             if (button.innerText == "X") {
                 button.innerText = "!";
-                button.style.color = "red";
+                button.style.color = "white";
+                button.style.backgroundColor = "red";
                 button.style.font.bold();
                 button.title = "Marked for deletion. Click to restore"
 
                 if (document.getElementById("FilesToDelete").value.indexOf(img) < 0) {
                     document.getElementById("FilesToDelete").value = document.getElementById("FilesToDelete").value + "[" + n + "]";
-                    document.getElementById("FilesToDeleteLabel").innerHTML = document.getElementById("FilesToDeleteLabel").innerHTML + "[" + n + "]";
                 }
             }
             else {
                 button.innerText = "X";
-                button.style.color = "blue";
+                button.style.color = "";
+                button.style.backgroundColor = "";
                 button.title = "Click to delete attachment #" + n;
 
                 if (document.getElementById("FilesToDelete").value.indexOf(img) >= 0) {
                     var str = document.getElementById("FilesToDelete").value;
                     str = str.replace(img, "").trim();
                     document.getElementById("FilesToDelete").value = str;
-
-                    document.getElementById("FilesToDeleteLabel").innerHTML = document.getElementById("FilesToDeleteLabel").innerHTML.replace("[" + n + "]", "");
                 }
 
             }
-
-            if (document.getElementById("FilesToDeleteLabel").innerHTML.indexOf("[") < 0)
-                document.getElementById("FilesToDeleteLabel").innerHTML = "";
-
         }
 
     </script>

@@ -9,7 +9,7 @@
     @Html.AntiForgeryToken()
     @Html.Hidden("attachmentsJson", "")
     @Html.Hidden("userID", (object)ViewBag.UserID)
-    @Html.Hidden("attachmentUploadWebAPIUrl",(object)ViewBag.AttachmentUploadWebAPIUrl)
+    @Html.Hidden("attachmentUploadWebAPIUrl", (object)ViewBag.AttachmentUploadWebAPIUrl)
 
     <div class="form-horizontal">
         <h4>Create Expense Record</h4>
@@ -71,13 +71,7 @@
                 </div>
             </div>
         </div>
-
-
-        @* This gets populated from the DisplayFilesToUpload() JS function*@
-        <p id="FilesToUpload"></p>
-
-
-
+        <p id="FilesLabel"></p>
     </div>
 }
 
@@ -86,6 +80,7 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/Scripts/custom/customscripts.js")
+    @Scripts.Render("~/Scripts/custom/jquery.validate.js")
 
     <script>
 
@@ -105,7 +100,7 @@
                 }
                 html = html + "<hr />";
             }
-            document.getElementById("FilesToUpload").innerHTML = html;
+            document.getElementById("FilesLabel").innerHTML = html;
         }
 
     </script>
