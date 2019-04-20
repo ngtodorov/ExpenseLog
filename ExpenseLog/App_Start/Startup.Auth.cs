@@ -3,7 +3,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
-//using Microsoft.Owin.Security.Google;
+using Microsoft.Owin.Security.Google;
 using Owin;
 using ExpenseLog.Models;
 using ExpenseLog.DAL;
@@ -15,6 +15,8 @@ namespace ExpenseLog
         // For more information on configuring authentication, please visit https://go.microsoft.com/fwlink/?LinkId=301864
         public void ConfigureAuth(IAppBuilder app)
         {
+            ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
+
             // Configure the db context, user manager and signin manager to use a single instance per request
             app.CreatePerOwinContext(ExpenseLogContext.Create);
             app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
@@ -59,11 +61,12 @@ namespace ExpenseLog
             //   appId: "",
             //   appSecret: "");
 
-            //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            //{
-            //    ClientId = "",
-            //    ClientSecret = ""
-            //});
+            //---https://docs.microsoft.com/en-us/aspnet/mvc/overview/security/create-an-aspnet-mvc-5-app-with-facebook-and-google-oauth2-and-openid-sign-on
+            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
+            {
+                ClientId = utils.GetAppSetting("EL_GOOGLE_AUTH_CLIENT_ID"),
+                ClientSecret = utils.GetAppSetting("EL_GOOGLE_AUTH_CLIENT_SECRET")
+            });
         }
     }
 }
