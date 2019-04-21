@@ -1,6 +1,7 @@
-﻿$(document).ready(function () {
+﻿//--- this has multiple AJAX functions that are used into multiple views
+$(document).ready(function () {
 
-    //--- AJAX to fill Master/Details combo-boxes
+    //--- AJAX to fill Master/Details combo-boxes into ExpesnseRecord Create & Edit forms
     $('#expenseTypeID').change(function () {
         var expenseTypeID = $(this).val();
         var path = window.location.pathname;
@@ -33,18 +34,6 @@
 
 
     });
-
-
-        $('#formExpenseRecord').validate({
-            rules: {
-                ExpensePrice:   {required: true},
-                ExpenseDate:    {required: true}
-            },
-            messages: {
-                ExpensePrice: { required: "Expense Price is required!"},
-                ExpenseDate: { required: "Expense Date is required!"}
-            }
-        });
 
 
     //--- This script will be executed on Expense Record Create and Edit form submission
@@ -112,5 +101,30 @@
         }
         return true;
     });
+
+
+    //$("#createExpenseRecordLink").click(function onClick(event) {
+    //    event.preventDefault();
+
+    //    var fromDateFilter = $("#fromDateFilter").val();
+    //    var toDateFilter = $("#toDateFilter").val();
+    //    //var descriptionSearchFilter = $("descriptionSearchFilter").val();
+
+    //    $.ajax({
+    //        type: 'GET',
+    //        dataType: 'json',
+    //        cache : false,
+    //        url: '/ExpenseRecord/Create',
+    //        data: { 'fromDateFilter': fromDateFilter, 'toDateFilter': toDateFilter},
+    //        success: function (d) {
+    //            alert(d);
+    //        },
+    //        error: function (jqXHR, textStatus, errorThrown) {
+    //            if (jqXHR.status!="200")
+    //                alert("Error executing GET action /ExpenseRecord/Create.\nStatus Code: " + jqXHR.status + "\nStatus Text: " + jqXHR.statusText + "\nMessage: " + jqXHR.responseText);
+    //        }
+    //    });
+
+    //});
 
 });

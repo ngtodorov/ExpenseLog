@@ -22,14 +22,21 @@ namespace ContosoUniversity.Controllers
         public ActionResult Index(string sortOrder)
         {
             string userId = User.Identity.GetUserId();
-            var items = db.ExpenseEntities.Where(x => x.UserId == userId);
+            var items = db.ExpenseEntities.Where(x => x.UserId == userId).Include(a=>a.ExpenseType);
 
             #region Column Ordering
-            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.TypeSortParm = (String.IsNullOrEmpty(sortOrder)|| sortOrder == "Type") ? "Type_desc" : "Type";
+            ViewBag.NameSortParm = sortOrder == "Entity"? "Entity_desc" : "Entity";
             ViewBag.DescrSortParm = sortOrder == "Description" ? "descr_desc" : "Description";
             switch (sortOrder)
             {
-                case "name_desc":
+                case "Type_desc":
+                    items = items.OrderByDescending(s => s.ExpenseType.Title);
+                    break;
+                case "Entity":
+                    items = items.OrderBy(s => s.ExpenseEntityName);
+                    break;
+                case "Entity_desc":
                     items = items.OrderByDescending(s => s.ExpenseEntityName);
                     break;
                 case "Description":
@@ -39,11 +46,11 @@ namespace ContosoUniversity.Controllers
                     items = items.OrderByDescending(s => s.ExpenseEntityDescription);
                     break;
                 default:
-                    items = items.OrderBy(s => s.ExpenseEntityName);
+                    items = items.OrderBy(s => s.ExpenseType.Title);
                     break;
             }
             #endregion
-            
+
             return View(items.ToList());
         }
 

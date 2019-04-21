@@ -33,7 +33,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord
         [RequireHttps]
         [Authorize]
-        public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder, string descriptionSearch)
+        public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder, string descriptionSearchFilter)
         {
             if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
                 filterDateFrom = DateTime.Today.AddMonths(-1);
@@ -91,8 +91,8 @@ namespace ExpenseLog.Controllers
             }
 
             #endregion
-            if (!String.IsNullOrEmpty(descriptionSearch))
-                expenseRecords = expenseRecords.Where(x=>x.ExpenseDescription.IndexOf(descriptionSearch)>=0);
+            if (!String.IsNullOrEmpty(descriptionSearchFilter))
+                expenseRecords = expenseRecords.Where(x=>x.ExpenseDescription.IndexOf(descriptionSearchFilter)>=0);
 
             if (expenseRecords != null && expenseRecords.ToList().Count > 0)
                 ViewBag.Total = expenseRecords.Sum(x => x.ExpensePrice);
@@ -101,7 +101,7 @@ namespace ExpenseLog.Controllers
 
             ViewBag.FilterDateFrom = filterDateFrom.ToString("MM/dd/yyyy");
             ViewBag.FilterDateTo = filterDateTo.ToString("MM/dd/yyyy");
-            ViewBag.FilterDescriptionSearch = descriptionSearch;
+            ViewBag.FilterDescriptionSearch = descriptionSearchFilter;
 
             //--- Types
             List<ExpenseType> types = new List<ExpenseType>
@@ -144,10 +144,11 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord/Create
         [RequireHttps]
         [Authorize]
-        public ActionResult Create(string filter)
+        public ActionResult Create()
         {
             try
             {
+
                 SetViewBagVariables();
 
                 return View();

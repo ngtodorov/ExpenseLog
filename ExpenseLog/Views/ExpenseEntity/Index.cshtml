@@ -12,12 +12,14 @@
             @Html.ActionLink("+", "Create", "ExpenseEntity", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Entity" })
         </th>
         <th>
-            @Html.ActionLink("Name", "Index", new { sortOrder = ViewBag.NameSortParm })
+            @Html.ActionLink("Type", "Index", new { sortOrder = ViewBag.TypeSortParm } )
+        </th>
+        <th>
+            @Html.ActionLink("Entity", "Index", new { sortOrder = ViewBag.NameSortParm })
         </th>
         <th>
             @Html.ActionLink("Description", "Index", new { sortOrder = ViewBag.DescrSortParm })
         </th>
-
     </tr>
 
     @foreach (var item in Model)
@@ -26,6 +28,9 @@
         <td>
             <!-- Edit Button -->
             @Html.ActionLink("[]", "Edit", "ExpenseEntity", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Entity" })
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ExpenseType.Title)
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.ExpenseEntityName)
