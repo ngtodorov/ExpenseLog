@@ -33,7 +33,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord
         [RequireHttps]
         [Authorize]
-        public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder)
+        public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder, string descriptionSearch)
         {
             if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
                 filterDateFrom = DateTime.Today.AddMonths(-1);
@@ -56,10 +56,12 @@ namespace ExpenseLog.Controllers
 
 
             #region Column Ordering
+
             ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "Entity_Desc" : "";
             ViewBag.DescrSortParam = sortOrder == "Description" ? "Description_Desc" : "Description";
             ViewBag.DateSortParam = sortOrder == "Date" ? "Date_Desc" : "Date";
             ViewBag.PriceSortParam = sortOrder == "Price" ? "Price_Desc" : "Price";
+
             switch (sortOrder)
             {
                 case "Entity_Desc":
@@ -87,8 +89,10 @@ namespace ExpenseLog.Controllers
                     expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDate);
                     break;
             }
-            #endregion
 
+            #endregion
+            if (!String.IsNullOrEmpty(descriptionSearch))
+                expenseRecords = expenseRecords.Where(x=>x.ExpenseDescription.IndexOf(descriptionSearch)>=0);
 
             if (expenseRecords != null && expenseRecords.ToList().Count > 0)
                 ViewBag.Total = expenseRecords.Sum(x => x.ExpensePrice);
@@ -97,6 +101,7 @@ namespace ExpenseLog.Controllers
 
             ViewBag.FilterDateFrom = filterDateFrom.ToString("MM/dd/yyyy");
             ViewBag.FilterDateTo = filterDateTo.ToString("MM/dd/yyyy");
+            ViewBag.FilterDescriptionSearch = descriptionSearch;
 
             //--- Types
             List<ExpenseType> types = new List<ExpenseType>
@@ -111,8 +116,7 @@ namespace ExpenseLog.Controllers
                 Text = item.Title.ToString(),
                 Selected = "select" == item.ID.ToString()
             });
-
-
+            
             //--- Entities
             List<ExpenseEntity> entities = new List<ExpenseEntity>
             {
@@ -140,7 +144,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord/Create
         [RequireHttps]
         [Authorize]
-        public ActionResult Create()
+        public ActionResult Create(string filter)
         {
             try
             {
@@ -155,9 +159,7 @@ namespace ExpenseLog.Controllers
                 return View("ErrorDescr");
             }
         }
-
-
-
+        
         // POST: ExpenseRecord/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
@@ -223,8 +225,7 @@ namespace ExpenseLog.Controllers
             else
                 return View("ErrorDescr");
         }
-
-
+        
         // POST: ExpenseRecord/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
