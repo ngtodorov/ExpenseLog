@@ -101,7 +101,7 @@ namespace ExpenseLog.Controllers
 
             ViewBag.FilterDateFrom = filterDateFrom.ToString("MM/dd/yyyy");
             ViewBag.FilterDateTo = filterDateTo.ToString("MM/dd/yyyy");
-            ViewBag.FilterDescriptionSearch = descriptionSearchFilter;
+            ViewBag.FilterDescriptionSearchFilter = descriptionSearchFilter;
 
             //--- Types
             List<ExpenseType> types = new List<ExpenseType>
