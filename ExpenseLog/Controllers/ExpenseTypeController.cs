@@ -166,13 +166,11 @@ namespace ExpenseLog.Controllers
             }
             catch (Exception ex)
             {
-                this.ModelState.AddModelError("Title", ex.GetBaseException().Message);
-                return View("Edit",expenseType);
-                //ViewBag.Title = $"Delete Expense Type:  ({id}) : {expenseTypeTitle}";
-                //ViewData["message"] = ex.GetBaseException().Message;
-                //ViewData["trace"] = ex.StackTrace;
-                //return View("ErrorDescr");
+                ExpenseLog.Utils.ExceptionHandler exceptionHandler = new ExpenseLog.Utils.ExceptionHandler();
+                this.ModelState.AddModelError("Title", exceptionHandler.GetExceptionMessage(ex));
+                return View("Edit", expenseType);
             }
+            
         }
 
         protected override void Dispose(bool disposing)

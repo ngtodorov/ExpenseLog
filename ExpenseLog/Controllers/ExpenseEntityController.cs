@@ -169,7 +169,6 @@ namespace ContosoUniversity.Controllers
                 {
                     string userId = User.Identity.GetUserId();
                     ViewBag.ExpenseTypeID = new SelectList(db.ExpenseTypes.Where(x => x.UserId == userId), "ID", "Title", expenseEntity.ExpenseTypeID);
-                    errorMessage = ex.GetBaseException().Message;
                 }
                 catch(Exception ex2)
                 {
@@ -178,8 +177,9 @@ namespace ContosoUniversity.Controllers
                     ViewData["trace"] = ex.StackTrace;
                     return View("ErrorDescr");
                 }
-                this.ModelState.AddModelError("ExpenseEntityDescription", ex.GetBaseException().Message);
-                return View("Edit",expenseEntity);
+                ExpenseLog.Utils.ExceptionHandler exceptionHandler = new ExpenseLog.Utils.ExceptionHandler();
+                this.ModelState.AddModelError("ExpenseEntityDescription", exceptionHandler.GetExceptionMessage(ex));
+                return View("Edit", expenseEntity);
             }
         }
 
