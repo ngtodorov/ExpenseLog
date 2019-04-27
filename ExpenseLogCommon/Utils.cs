@@ -9,43 +9,61 @@ namespace ExpenseLogCommon
 {
     public class Utils
     {
+       
         public string Encrypt(string text)
         {
-            string ecryptionKey = GetAppSetting("EL_ENCRYP_DECRYPT_KEY");
-            byte[] SrctArray;
-            byte[] EnctArray = UTF8Encoding.UTF8.GetBytes(text);
-            SrctArray = UTF8Encoding.UTF8.GetBytes(ecryptionKey);
-            TripleDESCryptoServiceProvider objt = new TripleDESCryptoServiceProvider();
-            MD5CryptoServiceProvider objcrpt = new MD5CryptoServiceProvider();
-            SrctArray = objcrpt.ComputeHash(UTF8Encoding.UTF8.GetBytes(ecryptionKey));
-            objcrpt.Clear();
-            objt.Key = SrctArray;
-            objt.Mode = CipherMode.ECB;
-            objt.Padding = PaddingMode.PKCS7;
-            ICryptoTransform crptotrns = objt.CreateEncryptor();
-            byte[] resArray = crptotrns.TransformFinalBlock(EnctArray, 0, EnctArray.Length);
-            objt.Clear();
-            return Convert.ToBase64String(resArray, 0, resArray.Length);
+            return EncryptDecrypt(text, GetAppSetting("EL_ENCRYP_DECRYPT_KEY"), true);
         }
 
         public string Decrypt(string encryptedText)
         {
-            string decryptionKey = GetAppSetting("EL_ENCRYP_DECRYPT_KEY");
-            byte[] SrctArray;
-            byte[] DrctArray = Convert.FromBase64String(encryptedText);
-            SrctArray = UTF8Encoding.UTF8.GetBytes(decryptionKey);
-            TripleDESCryptoServiceProvider objt = new TripleDESCryptoServiceProvider();
-            MD5CryptoServiceProvider objmdcript = new MD5CryptoServiceProvider();
-            SrctArray = objmdcript.ComputeHash(UTF8Encoding.UTF8.GetBytes(decryptionKey));
-            objmdcript.Clear();
-            objt.Key = SrctArray;
-            objt.Mode = CipherMode.ECB;
-            objt.Padding = PaddingMode.PKCS7;
-            ICryptoTransform crptotrns = objt.CreateDecryptor();
-            byte[] resArray = crptotrns.TransformFinalBlock(DrctArray, 0, DrctArray.Length);
-            objt.Clear();
-            return UTF8Encoding.UTF8.GetString(resArray);
+            return EncryptDecrypt(encryptedText, GetAppSetting("EL_ENCRYP_DECRYPT_KEY"), false);
         }
+
+        public string EncryptDecrypt(string text, string key, bool doEncrypt)
+        {
+            try
+            {
+                using (TripleDESCryptoServiceProvider tripleDESCrServ = new TripleDESCryptoServiceProvider())
+                {
+                    using (MD5CryptoServiceProvider md5CrServ = new MD5CryptoServiceProvider())
+                    {
+                        byte[] keyArray = md5CrServ.ComputeHash(UTF8Encoding.UTF8.GetBytes(key));
+                        md5CrServ.Clear();
+                        tripleDESCrServ.Key = keyArray;
+                        tripleDESCrServ.Mode = CipherMode.ECB;
+                        tripleDESCrServ.Padding = PaddingMode.PKCS7;
+
+                        ICryptoTransform cryptoTransform;
+
+                        byte[] inputArray;
+                        byte[] resultArray;
+
+                        if (doEncrypt)
+                        {
+                            cryptoTransform = tripleDESCrServ.CreateEncryptor();
+                            inputArray = UTF8Encoding.UTF8.GetBytes(text);
+                            resultArray = cryptoTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+                            tripleDESCrServ.Clear();
+                            return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+                        }
+                        else
+                        {
+                            cryptoTransform = tripleDESCrServ.CreateDecryptor();
+                            inputArray = Convert.FromBase64String(text);
+                            resultArray = cryptoTransform.TransformFinalBlock(inputArray, 0, inputArray.Length);
+                            tripleDESCrServ.Clear();
+                            return UTF8Encoding.UTF8.GetString(resultArray);
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                throw new Exception($"Encrypt/Decrypt failed. {ex.GetBaseException().Message}");
+            }
+        }
+      
 
         /// <summary>
         /// If the application is running on the local / developer machine, 

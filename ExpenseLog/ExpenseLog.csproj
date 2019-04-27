@@ -486,8 +486,6 @@
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\ExpenseType\Create.cshtml" />
-    <Content Include="Views\ExpenseType\Delete.cshtml" />
-    <Content Include="Views\ExpenseType\Details.cshtml" />
     <Content Include="Views\ExpenseType\Edit.cshtml" />
     <Content Include="Views\ExpenseType\Index.cshtml" />
     <Content Include="Views\Account\ConfirmEmail.cshtml" />
@@ -511,8 +509,6 @@
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\ExpenseEntity\Create.cshtml" />
-    <Content Include="Views\ExpenseEntity\Delete.cshtml" />
-    <Content Include="Views\ExpenseEntity\Details.cshtml" />
     <Content Include="Views\ExpenseEntity\Edit.cshtml" />
     <Content Include="Views\ExpenseEntity\Index.cshtml" />
     <Content Include="Views\ExpenseRecord\Create.cshtml" />

@@ -14,21 +14,21 @@ namespace ExpenseLogWebAPI.Helpers
         {
             try
             {
-                // load original image
+                //--- Load original image
                 Bitmap bitmap = new Bitmap(inputImageStream);
 
-                //Lock bitmap's bits to system memory
+                //--- Lock bitmap's bits to system memory
                 Rectangle rectangle = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
                 BitmapData bitmapData = bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-                //Scan for the first line
+                //--- Scan for the first line
                 IntPtr intPtr = bitmapData.Scan0;
 
-                //Declare an array in which your RGB values will be stored
+                //--- Declare an array in which your RGB values will be stored
                 int numberOfBytes = Math.Abs(bitmapData.Stride) * bitmap.Height;
                 byte[] bytes = new byte[numberOfBytes];
 
-                //Copy RGB values in that array
+                //--- Copy RGB values in that array
                 Marshal.Copy(intPtr, bytes, 0, numberOfBytes);
 
                 try
@@ -45,17 +45,17 @@ namespace ExpenseLogWebAPI.Helpers
                     throw new Exception($"Error on Set RGB array: {ex1.GetBaseException().Message}");
                 }
 
-                //Copy changed RGB values back to bitmap
+                //--- Copy changed RGB values back to bitmap
                 Marshal.Copy(bytes, 0, intPtr, numberOfBytes);
 
-                //Unlock the bits
+                //--- Unlock the bits
                 bitmap.UnlockBits(bitmapData);
 
-                //Encode to JPEG
+                //--- Encode to JPEG
                 EncoderParameters encoderParameters = new EncoderParameters(1);
                 encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 60L);
 
-                //Stream back the result
+                //--- Stream back the result
                 using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
                 {
                     bitmap.Save(memoryStream, GetEncoder(ImageFormat.Jpeg), encoderParameters);

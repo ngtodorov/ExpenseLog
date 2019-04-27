@@ -13,11 +13,12 @@ namespace ExpenseLogWebAPI
         {
             // Web API configuration and services
 
-            // Enable CORS (Cross Origin Resource Sharing)
-            // https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/enabling-cross-origin-requests-in-web-api
+            //--- Enable CORS (Cross Origin Resource Sharing)
+            //--- Read more here: https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/enabling-cross-origin-requests-in-web-api
+            //--- Restrict who can access that WebAPI 
             ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
-            string coreOrigins = utils.GetAppSetting("EL_CORS_ORIGINS");
-            var cors = new EnableCorsAttribute(coreOrigins, "*", "*");
+            string corsOrigins = utils.GetAppSetting("EL_CORS_ORIGINS");  //--- gets comma separated list
+            var cors = new EnableCorsAttribute(corsOrigins, "*", "*");
             config.EnableCors(cors);
 
             // Web API routes

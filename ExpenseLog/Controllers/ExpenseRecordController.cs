@@ -476,7 +476,7 @@ namespace ExpenseLog.Controllers
             //--- Set User ID
             ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
             ViewBag.UserID = utils.Encrypt(userId);
-
+            
             //--- Set attachmentUploadWebAPIUrl
             string webAPIUri = utils.GetAppSetting("EL_EXPENSE_LOG_WEB_API_URI");
             Uri uri = new Uri(new Uri(webAPIUri), "/api/attachment/upload");
