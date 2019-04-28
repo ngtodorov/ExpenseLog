@@ -33,27 +33,28 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord
         [RequireHttps]
         [Authorize]
-        public ActionResult Index(string fromDateFilter, string toDateFilter, string expenseTypeID, string expenseEntityID, string sortOrder, string descriptionSearchFilter)
+        public ActionResult Index(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter,  string sortOrder, string descriptionSearchFilter)
         {
+
             if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
                 filterDateFrom = DateTime.Today.AddMonths(-1);
 
             if (!DateTime.TryParse(toDateFilter, out DateTime filterDateTo))
                 filterDateTo = DateTime.Today;
 
+            int filterExpenseTypeID = string.IsNullOrEmpty(expenseTypeIDFilter) ? 0 : int.Parse(expenseTypeIDFilter);
+            int filterExpenseEntityID = string.IsNullOrEmpty(expenseEntityIDFilter) ? 0 : int.Parse(expenseEntityIDFilter);
+
             string userId = User.Identity.GetUserId();
-            int expenseTypeID2 = String.IsNullOrEmpty(expenseTypeID) ? 0 : int.Parse(expenseTypeID);
-            int expenseEntityID2 = String.IsNullOrEmpty(expenseEntityID) ? 0 : int.Parse(expenseEntityID);
 
             var expenseRecords = db.ExpenseRecords
                 .Where(x => x.UserId == userId
                         && x.ExpenseDate >= filterDateFrom
                         && x.ExpenseDate <= filterDateTo
-                        && (expenseTypeID2 == 0 || x.ExpenseTypeID == expenseTypeID2)
-                        && (expenseEntityID2 == 0 || x.ExpenseEntityID == expenseEntityID2))
+                        && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)
+                        && (filterExpenseEntityID == 0 || x.ExpenseEntityID == filterExpenseEntityID))
                 .Include(e => e.ExpenseEntity)
                 .Include(e => e.ExpenseType);
-
 
             #region Column Ordering
 
@@ -92,16 +93,15 @@ namespace ExpenseLog.Controllers
 
             #endregion
             if (!String.IsNullOrEmpty(descriptionSearchFilter))
-                expenseRecords = expenseRecords.Where(x=>x.ExpenseDescription.IndexOf(descriptionSearchFilter)>=0);
+                expenseRecords = expenseRecords.Where(x => x.ExpenseDescription.IndexOf(descriptionSearchFilter) >= 0);
 
             if (expenseRecords != null && expenseRecords.ToList().Count > 0)
                 ViewBag.Total = expenseRecords.Sum(x => x.ExpensePrice);
             else
                 ViewBag.Total = 0;
 
-            ViewBag.FilterDateFrom = filterDateFrom.ToString("MM/dd/yyyy");
-            ViewBag.FilterDateTo = filterDateTo.ToString("MM/dd/yyyy");
-            ViewBag.FilterDescriptionSearchFilter = descriptionSearchFilter;
+            //--- Set current filter selections into ViewBag
+            SetFilterViewBag(filterExpenseTypeID.ToString(), filterExpenseEntityID.ToString(), filterDateFrom.ToString("MM/dd/yyyy"), filterDateTo.ToString("MM/dd/yyyy"), descriptionSearchFilter);
 
             //--- Types
             List<ExpenseType> types = new List<ExpenseType>
@@ -116,13 +116,13 @@ namespace ExpenseLog.Controllers
                 Text = item.Title.ToString(),
                 Selected = "select" == item.ID.ToString()
             });
-            
+
             //--- Entities
             List<ExpenseEntity> entities = new List<ExpenseEntity>
             {
                 new ExpenseEntity { ID = 0, ExpenseEntityName = "ALL ENTITIES" }
             };
-            entities.AddRange(db.ExpenseEntities.Where(x => x.UserId == userId && (expenseTypeID2 == 0 || x.ExpenseTypeID == expenseTypeID2)));
+            entities.AddRange(db.ExpenseEntities.Where(x => x.UserId == userId && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)));
 
             ViewBag.ExpenseEntities = entities.Select(item => new SelectListItem
             {
@@ -138,18 +138,23 @@ namespace ExpenseLog.Controllers
             //          ExpenseAttachmentCount = r.ExpenseAttachments.Count(p => p.ExpenseRecordID == r.ExpenseRecordID)
             //      };
 
+
             return View(expenseRecords.ToList());
         }
+
 
         // GET: ExpenseRecord/Create
         [RequireHttps]
         [Authorize]
-        public ActionResult Create()
+        public ActionResult Create(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter)
         {
             try
             {
-
+                //--- Set current variables in ViewBag
                 SetViewBagVariables();
+                
+                //--- Set current filter selections into ViewBag
+                SetFilterViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter);
 
                 return View();
             }
@@ -191,7 +196,16 @@ namespace ExpenseLog.Controllers
                     if (!String.IsNullOrEmpty(uploadAttachmentTaskResult))
                         throw new Exception($"Some of the attachments were not uploaded. {uploadAttachmentTaskResult}");
 
-                    return RedirectToAction("Index");
+
+                    //--- redirect to Index page and pass the filter
+                    return RedirectToAction("Index",new {
+                        expenseTypeIDFilter = Request["FilterExpenseTypeID"],
+                        expenseEntityIDFilter = Request["FilterExpenseEntityID"],
+                        fromDateFilter = Request["FilterDateFrom"],
+                        toDateFilter = Request["FilterDateTo"],
+                        descriptionSearchFilter = Request["FilterDescriptionSearch"]
+                    });
+
                 }
                 catch (Exception ex1)
                 {
@@ -209,7 +223,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord/Edit/5
         [RequireHttps]
         [Authorize]
-        public ActionResult Edit(int? id)
+        public ActionResult Edit(int? id, string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter)
         {
             if (id == null)
             {
@@ -220,6 +234,11 @@ namespace ExpenseLog.Controllers
             {
                 return HttpNotFound();
             }
+
+
+            //--- Set current filter selections into ViewBag
+            SetFilterViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter);
+
 
             if (EditPrep(expenseRecord))
                 return View(expenseRecord);
@@ -234,7 +253,7 @@ namespace ExpenseLog.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<ActionResult> Edit([Bind(Include = "ExpenseRecordID,ExpenseTypeID,ExpenseEntityID,ExpenseDate,ExpensePrice,ExpenseDescription,selectFiles, FilesToDelete")] ExpenseRecord expenseRecord)
+        public async Task<ActionResult> Edit([Bind(Include = "ExpenseRecordID,ExpenseTypeID,ExpenseType,ExpenseEntityID,ExpenseEntity,ExpenseDate,ExpensePrice,ExpenseDescription,selectFiles,FilesToDelete")] ExpenseRecord expenseRecord)
         {
             string userId = User.Identity.GetUserId();
             if (ModelState.IsValid)
@@ -254,7 +273,16 @@ namespace ExpenseLog.Controllers
                     if (uploadAttachmentTaskResult != String.Empty)
                         throw new Exception($"Some of the attachments were not uploaded. {uploadAttachmentTaskResult}");
 
-                    return RedirectToAction("Index");
+                    //---redirect to Index page and pass the filter
+                    return RedirectToAction("Index", new
+                    {
+                        expenseTypeIDFilter = Request["FilterExpenseTypeID"],
+                        expenseEntityIDFilter = Request["FilterExpenseEntityID"],
+                        fromDateFilter = Request["FilterDateFrom"],
+                        toDateFilter = Request["FilterDateTo"],
+                        descriptionSearchFilter = Request["FilterDescriptionSearch"]
+                    });
+
                 }
                 catch (Exception ex1)
                 {
@@ -484,6 +512,16 @@ namespace ExpenseLog.Controllers
 
             //--- Set Lists
             SetViewBagSelectLists(userId, expenseRecord);
+        }
+
+        private void SetFilterViewBag(string filterExpenseTypeID, string filterExpenseEntityID, string filterDateFrom, string filterDateTo, string filterDescriptionSearch)
+        {
+            //--- Save Filter to ViewBag
+            ViewBag.FilterExpenseTypeID = filterExpenseTypeID;
+            ViewBag.FilterExpenseEntityID = filterExpenseEntityID;
+            ViewBag.FilterDateFrom = filterDateFrom;
+            ViewBag.FilterDateTo = filterDateTo;
+            ViewBag.FilterDescriptionSearch = filterDescriptionSearch;
         }
 
         private async Task DeleteSelectedAttachmentFiles(ExpenseRecord expenseRecord)

@@ -12,10 +12,10 @@
     <div class="form-group">
         <div class="form-row">
             <div class="col input-group-sm">
-                @Html.DropDownList("expenseTypeID", (ViewBag.ExpenseTypes as IEnumerable<SelectListItem>), htmlAttributes: new { @class = "form-control", @tag = "index" })
+                @Html.DropDownList("expenseTypeIDFilter", (ViewBag.ExpenseTypes as IEnumerable<SelectListItem>), htmlAttributes: new { @class = "form-control", @tag = "index" })
             </div>
             <div class="col input-group-sm">
-                @Html.DropDownList("expenseEntityID", (ViewBag.ExpenseEntities as IEnumerable<SelectListItem>), htmlAttributes: new { @class = "form-control" })
+                @Html.DropDownList("expenseEntityIDFilter", (ViewBag.ExpenseEntities as IEnumerable<SelectListItem>), htmlAttributes: new { @class = "form-control" })
             </div>
             <div class="col input-group-sm">
                 <input name="fromDateFilter" class="form-control text-box single-line valid" id="fromDateFilter" data-date-format="mm/dd/yyyy" aria-invalid="false" aria-describedby="ExpenseDate-error" type="datetime" value="@ViewBag.FilterDateFrom" data-provide="datepicker" data-val="true" data-val-date="The field Date must be a date.">
@@ -25,46 +25,55 @@
             </div>
             @Html.Label("Search")
             <div class="col input-group-sm">
-                <input name="descriptionSearchFilter" class="form-control text-box single-line valid" id="descriptionSearchFilter" value="@ViewBag.FilterDescriptionSearchFilter">
+                <input name="descriptionSearchFilter" class="form-control text-box single-line valid" id="descriptionSearchFilter" value="@ViewBag.FilterDescriptionSearch">
             </div>
             <div class="col">
                 <input class="btn btn-outline-primary btn-sm" type="submit" value="View" />
                 @Html.ActionLink("Excel", "ExportToExcel", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm" })
             </div>
         </div>
-
     </div>
 }
 
 
-<table class="table table-striped table-bordered table-hover table-sm order-column" id="table1" name="table1" style="width:100%">
-    <tr>
-        <th style="width:10px">
-            @Html.ActionLink("+", "Create", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Record", id = "createExpenseRecordLink" })
-        </th>
-        <th>
-            @Html.ActionLink("Date", "Index", new { sortOrder = ViewBag.DateSortParam })
-        </th>
-        <th>
-            @Html.ActionLink("Entity", "Index", new { sortOrder = ViewBag.NameSortParam })
-        </th>
-        <th>
-            @Html.ActionLink("Description", "Index", new { sortOrder = ViewBag.DescrSortParam })
-        </th>
-        <th>
-            @Html.ActionLink("Price", "Index", new { sortOrder = ViewBag.PriceSortParam })
-        </th>
+<table class="table table-striped table-bordered table-hover table-sm" id="table1" name="table1" style="width:100%">
+    
+        <tr>
+            <th style="width:10px">
+                @Html.ActionLink("+", "Create", "ExpenseRecord", new { expenseTypeIDFilter=ViewBag.FilterExpenseTypeID, expenseEntityIDFilter=ViewBag.FilterExpenseEntityID, fromDateFilter=ViewBag.FilterDateFrom, toDateFilter=ViewBag.FilterDateTo, descriptionSearchFilter=ViewBag.FilterDescriptionSearch }, new { @class = "btn btn-outline-primary btn-sm", title = "New Record", id = "createExpenseRecordLink" })
+            </th>
+            <th>
+                @Html.ActionLink("Date", "Index", new { sortOrder = ViewBag.DateSortParam })
+            </th>
+            <th>
+                @Html.ActionLink("Entity", "Index", new { sortOrder = ViewBag.NameSortParam })
+            </th>
+            <th>
+                @Html.ActionLink("Description", "Index", new { sortOrder = ViewBag.DescrSortParam })
+            </th>
+            <th>
+                @Html.ActionLink("Price", "Index", new { sortOrder = ViewBag.PriceSortParam })
+            </th>
 
-        <th>
-            @Html.DisplayName("Att")
-        </th>
-    </tr>
-
+            <th>
+                @Html.DisplayName("Att")
+            </th>
+        </tr>
+    
     @foreach (var item in Model)
     {
         <tr>
             <td>
-                @Html.ActionLink("[]", "Edit", "ExpenseRecord", new { id = item.ExpenseRecordID }, new { @class = "btn btn-outline-primary btn-sm", @title = "Edit Record", id = "editExpenseRecordLink" + @item.ExpenseRecordID })
+                @Html.ActionLink("[]", "Edit", "ExpenseRecord",
+                    new {
+                        id = item.ExpenseRecordID,
+                        expenseTypeIDFilter = ViewBag.FilterExpenseTypeID,
+                        expenseEntityIDFilter = ViewBag.FilterExpenseEntityID,
+                        fromDateFilter = ViewBag.FilterDateFrom,
+                        toDateFilter = ViewBag.FilterDateTo,
+                        descriptionSearchFilter = ViewBag.FilterDescriptionSearch},
+                    new { @class = "btn btn-outline-primary btn-sm",
+                        @title = "Edit Record", id = "editExpenseRecordLink" + @item.ExpenseRecordID })
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ExpenseDate)

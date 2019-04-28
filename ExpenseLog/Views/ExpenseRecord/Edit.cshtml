@@ -7,7 +7,13 @@
     @Html.AntiForgeryToken()
     @Html.Hidden("attachmentsJson", "")
     @Html.Hidden("userID", (object)ViewBag.UserID)
-    @Html.Hidden("attachmentUploadWebAPIUrl",(object)ViewBag.AttachmentUploadWebAPIUrl)
+    @Html.Hidden("attachmentUploadWebAPIUrl", (object)ViewBag.AttachmentUploadWebAPIUrl)
+
+    @Html.Hidden("FilterExpenseTypeID", (object)ViewBag.FilterExpenseTypeID)
+    @Html.Hidden("FilterExpenseEntityID", (object)ViewBag.FilterExpenseEntityID)
+    @Html.Hidden("FilterDateFrom", (object)ViewBag.FilterDateFrom)
+    @Html.Hidden("FilterDateTo", (object)ViewBag.FilterDateTo)
+    @Html.Hidden("FilterDescriptionSearch", (object)ViewBag.FilterDescriptionSearch)
 
     <div class="form-horizontal">
         <h4>Edit Expense Record</h4>
@@ -72,57 +78,57 @@
         -------------------------------------------------------  ATTACHMENTS BEGIN -----------------------------------------------------------------
         --------------------------------------------------------------------------------------------------------------------------------------------
         -->
-@* This gets populated from the DisplayFilesToUpload() JS function*@
-    <p id="FilesLabel"></p>
-    @if (ViewBag.ExpenseAttachmentUris != null && ViewBag.ExpenseAttachmentUris.Count > 0)
-    {
-
-    <!-- Images used to open the lightbox -->
-    <div class="row">
-    @{
-        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+        @* This gets populated from the DisplayFilesToUpload() JS function*@
+        <p id="FilesLabel"></p>
+        @if (ViewBag.ExpenseAttachmentUris != null && ViewBag.ExpenseAttachmentUris.Count > 0)
         {
-        <div class="column">
-            <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
-            <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
-        </div>
-        }
-    }
-    </div>
 
-    <!-- The Modal/Lightbox -->
-    <div id="myModal" class="modal">
-        <span class="close cursor" onclick="closeModal()">&times;</span>
-        <div class="modal-content">
-            @{
-
-                for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
-                {
-                <div class="mySlides">
-                    <div class="numbertext">@i / @ViewBag.ExpenseAttachmentUris.Count</div>
-                    <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%">
-                </div>
+            <!-- Images used to open the lightbox -->
+            <div class="row">
+                @{
+                    for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                    {
+                        <div class="column">
+                            <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
+                            <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
+                        </div>
+                    }
                 }
-            }
-
-            <!-- Next/previous controls -->
-            <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-            <a class="next" onclick="plusSlides(1)">&#10095;</a>
-            <!-- Caption text -->
-            <div class="caption-container">
-                <p id="caption"></p>
             </div>
 
-        </div>
-    </div>
+            <!-- The Modal/Lightbox -->
+            <div id="myModal" class="modal">
+                <span class="close cursor" onclick="closeModal()">&times;</span>
+                <div class="modal-content">
+                    @{
 
-    @Html.Hidden("FilesToDelete")
-    }
-    <!--
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    -------------------------------------------------------  ATTACHMENTS  END ------------------------------------------------------------------
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    -->
+                        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                        {
+                            <div class="mySlides">
+                                <div class="numbertext">@i / @ViewBag.ExpenseAttachmentUris.Count</div>
+                                <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%">
+                            </div>
+                        }
+                    }
+
+                    <!-- Next/previous controls -->
+                    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+                    <!-- Caption text -->
+                    <div class="caption-container">
+                        <p id="caption"></p>
+                    </div>
+
+                </div>
+            </div>
+
+            @Html.Hidden("FilesToDelete")
+        }
+        <!--
+        --------------------------------------------------------------------------------------------------------------------------------------------
+        -------------------------------------------------------  ATTACHMENTS  END ------------------------------------------------------------------
+        --------------------------------------------------------------------------------------------------------------------------------------------
+        -->
 
     </div>
 }
