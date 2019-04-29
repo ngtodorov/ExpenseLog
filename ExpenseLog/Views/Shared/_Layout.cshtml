@@ -10,31 +10,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>@ViewBag.Title - Expense Log</title>
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-    @Scripts.Render("~/bundles/modernizr")
-
-    <!-- Date Picker added as Nuget Package
-        https://bootstrap-datepicker.readthedocs.io/en/stable/index.html
-    -->
 
     @Styles.Render("~/Content/lightbox.css")
     <!--
     @Styles.Render("~/Content/css")
     -->
-
-
-    @Scripts.Render("~/Scripts/jquery-3.3.1.min.js")
-    @Scripts.Render("~/Scripts/bootstrap.js")
-    @Scripts.Render("~/Scripts/bootstrap-datepicker.js")
-
-    <link id="bsdp-css" href="/Content/bootstrap-datepicker3.min.css" rel="stylesheet">
-
+    
+    <!-- Date Picker added as Nuget Package https://bootstrap-datepicker.readthedocs.io/en/stable/index.html    -->
+    <link rel="stylesheet" type="text/css" href="/Content/bootstrap-datepicker3.min.css" id="bsdp-css"  >
     <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.datatables.net/rss.xml">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
 
+
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/Scripts/jquery-3.3.1.min.js")
+    @Scripts.Render("~/Scripts/bootstrap.js")
+
+    @Scripts.Render("~/Scripts/bootstrap-datepicker.js")
 
     @Scripts.Render("https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js")
     @Scripts.Render("https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js")
