@@ -222,7 +222,7 @@ namespace ExpenseLogWebAPI.Controllers
                 CloudBlockBlob cloudBlockBlob = _CloudBlobContainer.GetBlockBlobReference(blobFileName);
                 string mediaType = httpContent.Headers.ContentType.MediaType;
 
-                if (mediaType.ToLower().Contains("image"))
+                if (mediaType.ToLower().Contains("image") && !mediaType.ToLower().Contains("tif"))
                 {
                     //--- convert image to grayscale Jpeg & upload to the bloab
                     ImageUtils imageUtils = new ImageUtils();
@@ -234,11 +234,7 @@ namespace ExpenseLogWebAPI.Controllers
                 }
                 else
                 {
-                    //--- if it is not an image, then just upload to Azure Blob Storage
-                    using (System.IO.Stream fileStream = await httpContent.ReadAsStreamAsync())
-                    {
-                        await cloudBlockBlob.UploadFromStreamAsync(fileStream);
-                    }
+                    await cloudBlockBlob.UploadFromStreamAsync(await httpContent.ReadAsStreamAsync());
                 }
 
                 //--- return Attachment file object

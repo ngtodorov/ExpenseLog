@@ -11,30 +11,28 @@ using ExpenseLog.DAL;
 using ExpenseLog.Models;
 using Microsoft.AspNet.Identity;
 
-
 using System.IO;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System.Configuration;
-
 using System.Web.UI.WebControls;
 using System.Web.UI;
 using Newtonsoft.Json;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
+using System.Collections.ObjectModel;
 
 namespace ExpenseLog.Controllers
 {
+    [Authorize]
     public class ExpenseRecordController : Controller
     {
         private ExpenseLogContext db = new ExpenseLogContext();
 
         // GET: ExpenseRecord
         [RequireHttps]
-        [Authorize]
         public ActionResult Index(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter,  string sortOrder, string descriptionSearchFilter)
         {
+            string userId = User.Identity.GetUserId();
+
+            #region Read the filter values
 
             if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
                 filterDateFrom = DateTime.Today.AddMonths(-1);
@@ -45,65 +43,36 @@ namespace ExpenseLog.Controllers
             int filterExpenseTypeID = string.IsNullOrEmpty(expenseTypeIDFilter) ? 0 : int.Parse(expenseTypeIDFilter);
             int filterExpenseEntityID = string.IsNullOrEmpty(expenseEntityIDFilter) ? 0 : int.Parse(expenseEntityIDFilter);
 
-            string userId = User.Identity.GetUserId();
-
-            var expenseRecords = db.ExpenseRecords
-                .Where(x => x.UserId == userId
-                        && x.ExpenseDate >= filterDateFrom
-                        && x.ExpenseDate <= filterDateTo
-                        && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)
-                        && (filterExpenseEntityID == 0 || x.ExpenseEntityID == filterExpenseEntityID))
-                .Include(e => e.ExpenseEntity)
-                .Include(e => e.ExpenseType);
-
-            #region Column Ordering
-
-            ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "Entity_Desc" : "";
-            ViewBag.DescrSortParam = sortOrder == "Description" ? "Description_Desc" : "Description";
-            ViewBag.DateSortParam = sortOrder == "Date" ? "Date_Desc" : "Date";
-            ViewBag.PriceSortParam = sortOrder == "Price" ? "Price_Desc" : "Price";
-
-            switch (sortOrder)
-            {
-                case "Entity_Desc":
-                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseEntity.ExpenseEntityName);
-                    break;
-                case "Description":
-                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDescription);
-                    break;
-                case "Description_Desc":
-                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseDescription);
-                    break;
-                case "Date":
-                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDate);
-                    break;
-                case "Date_Desc":
-                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseDate);
-                    break;
-                case "Price":
-                    expenseRecords = expenseRecords.OrderBy(s => s.ExpensePrice);
-                    break;
-                case "Price_Desc":
-                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpensePrice);
-                    break;
-                default:
-                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDate);
-                    break;
-            }
+            //--- Set current filter selections into ViewBag
+            SetFilterViewBag(filterExpenseTypeID.ToString(), filterExpenseEntityID.ToString(), filterDateFrom.ToString("MM/dd/yyyy"), filterDateTo.ToString("MM/dd/yyyy"), descriptionSearchFilter);
 
             #endregion
-            if (!String.IsNullOrEmpty(descriptionSearchFilter))
-                expenseRecords = expenseRecords.Where(x => x.ExpenseDescription.IndexOf(descriptionSearchFilter) >= 0);
 
+            #region Filter expense records
+            var expenseRecords = db.ExpenseRecords
+                .Where(x => x.UserId == userId
+                        && x.ExpenseDate >= filterDateFrom 
+                        && x.ExpenseDate <= filterDateTo
+                        && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)
+                        && (filterExpenseEntityID == 0 || x.ExpenseEntityID == filterExpenseEntityID)
+                        && (String.IsNullOrEmpty(descriptionSearchFilter) || x.ExpenseDescription.IndexOf(descriptionSearchFilter) >= 0))
+                .Include(e => e.ExpenseEntity)
+                .Include(e => e.ExpenseType);
+            #endregion
+
+            #region Appy "order by" to the list of expense records
+            expenseRecords = ApplyOrderBy(sortOrder, expenseRecords);
+            #endregion
+
+            #region Calculate total expenses
             if (expenseRecords != null && expenseRecords.ToList().Count > 0)
                 ViewBag.Total = expenseRecords.Sum(x => x.ExpensePrice);
             else
                 ViewBag.Total = 0;
+            #endregion
 
-            //--- Set current filter selections into ViewBag
-            SetFilterViewBag(filterExpenseTypeID.ToString(), filterExpenseEntityID.ToString(), filterDateFrom.ToString("MM/dd/yyyy"), filterDateTo.ToString("MM/dd/yyyy"), descriptionSearchFilter);
+            #region Set "Expense Type" List for the combobox
 
-            //--- Types
             List<ExpenseType> types = new List<ExpenseType>
             {
                 new ExpenseType { ID = 0, Title = "ALL TYPES" }
@@ -117,7 +86,10 @@ namespace ExpenseLog.Controllers
                 Selected = "select" == item.ID.ToString()
             });
 
-            //--- Entities
+            #endregion
+
+            #region Set "Expense Entities" List for the combobox
+
             List<ExpenseEntity> entities = new List<ExpenseEntity>
             {
                 new ExpenseEntity { ID = 0, ExpenseEntityName = "ALL ENTITIES" }
@@ -131,17 +103,10 @@ namespace ExpenseLog.Controllers
                 Selected = "select" == item.ID.ToString()
             });
 
-            //var items = from r in expenseRecords
-            //  select new
-            //      {
-            //          expenseRecord = r,
-            //          ExpenseAttachmentCount = r.ExpenseAttachments.Count(p => p.ExpenseRecordID == r.ExpenseRecordID)
-            //      };
-
+            #endregion
 
             return View(expenseRecords.ToList());
         }
-
 
         // GET: ExpenseRecord/Create
         [RequireHttps]
@@ -239,11 +204,10 @@ namespace ExpenseLog.Controllers
             //--- Set current filter selections into ViewBag
             SetFilterViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter);
 
+            SetViewBagVariables(expenseRecord);
 
-            if (EditPrep(expenseRecord))
-                return View(expenseRecord);
-            else
-                return View("ErrorDescr");
+            return View(expenseRecord);
+            
         }
         
         // POST: ExpenseRecord/Edit/5
@@ -260,13 +224,13 @@ namespace ExpenseLog.Controllers
             {
                 try
                 {
-                    await DeleteSelectedAttachmentFiles(expenseRecord);
+                    db.Entry(expenseRecord).State = EntityState.Modified;
+                    await DeleteSelectedAttachmentFilesAsync(expenseRecord.ExpenseRecordID);
                     string uploadAttachmentTaskResult = await InsertAttachmentRecordsAsync(expenseRecord.ExpenseRecordID);
                     await Task.Factory.StartNew(() =>
                     {
                         expenseRecord.ExpenseLogDate = DateTime.Now;
                         expenseRecord.UserId = userId;
-                        db.Entry(expenseRecord).State = EntityState.Modified;
                         db.SaveChanges();
                     });
 
@@ -316,28 +280,20 @@ namespace ExpenseLog.Controllers
             {
                 try
                 {
-                    //--- delete all attachments for the current expense record
-                    if (await DeleteAttachmentFiles(expenseRecord.ExpenseAttachments.Select(x => x.ExpenseAttachmentName)))
+                    //--- Delete all attachments for the current expense record
+                    if (await DeleteAttachmentFilesAsync(expenseRecord.ExpenseAttachments.Select(x => x.ExpenseAttachmentName)))
                     {
                         //--- Delete current expense record and it will delete also the related attachment records
                         db.ExpenseRecords.Remove(expenseRecord);
                         db.SaveChanges();
                     }
-
                     return RedirectToAction("Index");
-
                 }
                 catch (Exception ex)
                 {
-                    if (EditPrep(expenseRecord))
-                    {
-                        this.ModelState.AddModelError("ExpenseDescription", ex.GetBaseException().Message);
-                        return View("Edit", expenseRecord);
-                    }
-                    else
-                    {
-                        return View("ErrorDescr");
-                    }
+                    SetViewBagVariables(expenseRecord);
+                    this.ModelState.AddModelError("ExpenseDescription", ex.GetBaseException().Message);
+                    return View("Edit", expenseRecord);
                 }
             }
         }
@@ -358,33 +314,34 @@ namespace ExpenseLog.Controllers
             return result;
         }
 
-        // GET: ExportData :http://techfunda.com/howto/308/export-data-into-ms-excel-from-mvc
+        // GET: ExportData
         [Authorize]
         [RequireHttps]
         public ActionResult ExportToExcel()
         {
-            // set the data source
+            //--- Set the data source
             GridView gridview = new GridView
             {
                 DataSource = db.ExpenseRecords.ToList()
             };
             gridview.DataBind();
 
-            // Clear all the content from the current response
+            //--- Clear all the content from the current response
             Response.ClearContent();
             Response.Buffer = true;
-            // set the header
+            //--- Set the header
             Response.AddHeader("content-disposition", "attachment;filename = itfunda.xls");
             Response.ContentType = "application/ms-excel";
             Response.Charset = "";
-            // create HtmlTextWriter object with StringWriter
+
+            //--- Create HtmlTextWriter object with StringWriter
             using (StringWriter sw = new StringWriter())
             {
                 using (HtmlTextWriter htw = new HtmlTextWriter(sw))
                 {
-                    // render the GridView to the HtmlTextWriter
+                    //--- Render the GridView to the HtmlTextWriter
                     gridview.RenderControl(htw);
-                    // Output the GridView content saved into StringWriter
+                    //--- Output the GridView content saved into StringWriter
                     Response.Output.Write(sw.ToString());
                     Response.Flush();
                     Response.End();
@@ -402,14 +359,6 @@ namespace ExpenseLog.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        /// <summary> 
-        /// Generates a unique random file name to be uploaded  
-        /// </summary> 
-        private string GetUniqueBlobName(string userID, int recordID, string filename)
-        {
-            return string.Format("{0}_{1}_{2:10}_{3}{4}", userID, recordID, DateTime.Now.Ticks, Guid.NewGuid(), Path.GetExtension(filename));
         }
 
         private void SetViewBagSelectLists(string userId, ExpenseRecord expenseRecord = null)
@@ -476,7 +425,7 @@ namespace ExpenseLog.Controllers
             return result;
         }
 
-        private async Task<bool> DeleteAttachmentFiles(IEnumerable<string> attachments)
+        private async Task<bool> DeleteAttachmentFilesAsync(IEnumerable<string> attachments)
         {
             ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
 
@@ -524,27 +473,25 @@ namespace ExpenseLog.Controllers
             ViewBag.FilterDescriptionSearch = filterDescriptionSearch;
         }
 
-        private async Task DeleteSelectedAttachmentFiles(ExpenseRecord expenseRecord)
+        private async Task DeleteSelectedAttachmentFilesAsync(int expenseRecordID)
         {
             if (Request["FilesToDelete"] != null)
             {
                 string filesToDelete = Request["FilesToDelete"];
                 if (filesToDelete != String.Empty)
                 {
-                    int i = 0;
-                    List<ExpenseAttachment> attachmentsToDelete = new List<ExpenseAttachment>();
-                    List<ExpenseAttachment> expenseAttachments = db.ExpenseAttachments.SqlQuery($"SELECT * FROM dbo.ExpenseAttachment WHERE ExpenseRecordID={expenseRecord.ExpenseRecordID} ORDER BY ID").ToList<ExpenseAttachment>();
-                    foreach (ExpenseAttachment attachment in expenseAttachments)
-                    {
-                        i++;
-                        if (filesToDelete.Contains($"[{i}]"))
-                        {
-                            attachmentsToDelete.Add(attachment);
-                        }
-                    }
+                    //--- select those attachments that are listed for deletion
+                    List<ExpenseAttachment> attachmentsToDelete =
+                        db.ExpenseRecords
+                        .Where(x => x.ExpenseRecordID == expenseRecordID)
+                        .Include("ExpenseAttachments")
+                        .FirstOrDefault()
+                        .ExpenseAttachments
+                        .Where(x => filesToDelete.Contains($"[{x.ID}]"))
+                        .ToList();
 
                     //--- delete selected attachment files
-                    await DeleteAttachmentFiles(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
+                    await DeleteAttachmentFilesAsync(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
 
                     //--- delete selected attachment records
                     foreach (ExpenseAttachment attachment in attachmentsToDelete)
@@ -554,34 +501,43 @@ namespace ExpenseLog.Controllers
                 }
             }
         }
-        
-        private bool EditPrep(ExpenseRecord expenseRecord)
+
+        private IQueryable<ExpenseRecord> ApplyOrderBy(string sortOrder, IQueryable<ExpenseRecord> expenseRecords)
         {
-            bool result = true;
-            try
+            ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "Entity_Desc" : "";
+            ViewBag.DescrSortParam = sortOrder == "Description" ? "Description_Desc" : "Description";
+            ViewBag.DateSortParam = sortOrder == "Date" ? "Date_Desc" : "Date";
+            ViewBag.PriceSortParam = sortOrder == "Price" ? "Price_Desc" : "Price";
+
+            switch (sortOrder)
             {
-
-                SetViewBagVariables(expenseRecord);
-
-                #region Attachments
-
-                List<Uri> attachmentUris = new List<Uri>();
-                foreach (ExpenseAttachment attachment in expenseRecord.ExpenseAttachments.OrderBy(x => x.ID))
-                    if (!String.IsNullOrEmpty(attachment.ExpenseAttachmentUri))
-                        attachmentUris.Add(new Uri(attachment.ExpenseAttachmentUri));
-
-                ViewBag.ExpenseAttachmentUris = attachmentUris;
-
-                #endregion
+                case "Entity_Desc":
+                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseEntity.ExpenseEntityName);
+                    break;
+                case "Description":
+                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDescription);
+                    break;
+                case "Description_Desc":
+                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseDescription);
+                    break;
+                case "Date":
+                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDate);
+                    break;
+                case "Date_Desc":
+                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpenseDate);
+                    break;
+                case "Price":
+                    expenseRecords = expenseRecords.OrderBy(s => s.ExpensePrice);
+                    break;
+                case "Price_Desc":
+                    expenseRecords = expenseRecords.OrderByDescending(s => s.ExpensePrice);
+                    break;
+                default:
+                    expenseRecords = expenseRecords.OrderBy(s => s.ExpenseDate);
+                    break;
             }
-            catch (Exception ex)
-            {
-                ViewBag.Title = "Expense Record";
-                ViewData["message"] = ex.GetBaseException().Message;
-                ViewData["trace"] = ex.StackTrace;
-                result = false;
-            }
-            return result;
+
+            return expenseRecords;
         }
 
         #endregion

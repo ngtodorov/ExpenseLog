@@ -16,7 +16,7 @@
             @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Title)
+            @Html.ActionLink("Expense Type", "Index", new { sortOrder = ViewBag.TitleSortParm })
         </th>
 
 

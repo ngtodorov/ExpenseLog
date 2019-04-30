@@ -80,17 +80,19 @@
         -->
         @* This gets populated from the DisplayFilesToUpload() JS function*@
         <p id="FilesLabel"></p>
-        @if (ViewBag.ExpenseAttachmentUris != null && ViewBag.ExpenseAttachmentUris.Count > 0)
+        @if (Model.ExpenseAttachments != null && Model.ExpenseAttachments.Count > 0)
         {
 
             <!-- Images used to open the lightbox -->
             <div class="row">
                 @{
-                    for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                    int i = 0;
+                    foreach(ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
                     {
+                        i++;
                         <div class="column">
-                            <button id="deleteImageButton-@i" type="button" onclick="markImageForDeletion(@i); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment #@i">X</button>
-                            <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
+                            <button id="deleteImageButton-@attachment.ID" type="button" onclick="markAttachmentForDeletion(@attachment.ID); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment">X</button>
+                            <img src="@attachment.ExpenseAttachmentUri" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
                         </div>
                     }
                 }
@@ -102,13 +104,16 @@
                 <div class="modal-content">
                     @{
 
-                        for (var i = 1; i <= ViewBag.ExpenseAttachmentUris.Count; i++)
+                        int k = 0;
+                        foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
                         {
+                            k++;
                             <div class="mySlides">
-                                <div class="numbertext">@i / @ViewBag.ExpenseAttachmentUris.Count</div>
-                                <img src="@ViewBag.ExpenseAttachmentUris[i-1]" style="width:100%">
+                                <div class="numbertext">@k / @Model.ExpenseAttachments.Count</div>
+                                <img src="@attachment.ExpenseAttachmentUri" style="width:100%">
                             </div>
                         }
+
                     }
 
                     <!-- Next/previous controls -->
@@ -137,6 +142,7 @@
     @Scripts.Render("~/Scripts/custom/lightbox.js")
     @Scripts.Render("~/Scripts/custom/customscripts.js")
     <script>
+
         //Lists the file name and size for all files to be uploaded by updating the <p id="FilesToUpload"></p> control
         function DisplayFilesToUpload() {
             var element = document.getElementById("file");
@@ -153,10 +159,13 @@
             document.getElementById("FilesLabel").innerHTML = html;
         }
 
-        function markImageForDeletion(n) {
-            var img = "[" + n + "]";
+        //--- mark an attachment for deletion or remove from deletion list
+        function markAttachmentForDeletion(attachID) {
+            var attachIDStr = "[" + attachID + "]";
 
-            var button = document.getElementById("deleteImageButton-" + n);
+            var button = document.getElementById("deleteImageButton-" + attachID);
+            var filesToDelete = document.getElementById("FilesToDelete").value;
+
             if (button.innerText == "X") {
                 button.innerText = "!";
                 button.style.color = "white";
@@ -164,20 +173,18 @@
                 button.style.font.bold();
                 button.title = "Marked for deletion. Click to restore"
 
-                if (document.getElementById("FilesToDelete").value.indexOf(img) < 0) {
-                    document.getElementById("FilesToDelete").value = document.getElementById("FilesToDelete").value + "[" + n + "]";
+                if (filesToDelete.indexOf(attachIDStr) < 0) {
+                    document.getElementById("FilesToDelete").value = filesToDelete + attachIDStr; //--- add to the "delete files" list 
                 }
             }
             else {
                 button.innerText = "X";
                 button.style.color = "";
                 button.style.backgroundColor = "";
-                button.title = "Click to delete attachment #" + n;
+                button.title = "Click to delete attachment";
 
-                if (document.getElementById("FilesToDelete").value.indexOf(img) >= 0) {
-                    var str = document.getElementById("FilesToDelete").value;
-                    str = str.replace(img, "").trim();
-                    document.getElementById("FilesToDelete").value = str;
+                if (filesToDelete.indexOf(attachIDStr) >= 0) {
+                    document.getElementById("FilesToDelete").value = filesToDelete.replace(attachIDStr, "").trim(); //--- remove from the "delete files" list
                 }
 
             }

@@ -16,54 +16,37 @@ using Microsoft.AspNet.Identity;
 
 namespace ExpenseLog.Controllers
 {
+    [Authorize]
     public class ExpenseTypeController : Controller
     {
         private ExpenseLogContext db = new ExpenseLogContext();
         
-
-        public async Task<string> GetStringAsync(string path)
-        {
-            string result = String.Empty;
-
-            using (HttpClient client = new HttpClient())
-            {
-                client.BaseAddress = new Uri("https://expenselog2gowebapi.azurewebsites.net");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                using (HttpResponseMessage response = await client.GetAsync(path))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        result = await response.Content.ReadAsStringAsync();
-                    }
-                }
-            }
-            return result;
-        }
-
-
-        // GET: Value
-        [Authorize]
-        public async Task<string> Value(string path)
-        {
-            string result = String.Empty;
-            result = await GetStringAsync(path);
-            return result;
-        }
-
         // GET: ExpenseType
         [RequireHttps]
-        [Authorize]
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder)
         {
             string userId = User.Identity.GetUserId();
-            return View(db.ExpenseTypes.Where(x => x.UserId == userId).ToList());
+
+            var items = db.ExpenseTypes.Where(x => x.UserId == userId);
+
+            #region Column Ordering
+            ViewBag.TitleSortParm = (String.IsNullOrEmpty(sortOrder) || sortOrder == "Title") ? "Title_desc" : "Title";
+            switch (sortOrder)
+            {
+                case "Title_desc":
+                    items = items.OrderByDescending(s => s.Title);
+                    break;
+                default:
+                    items = items.OrderBy(s => s.Title);
+                    break;
+            }
+            #endregion
+
+            return View(items.ToList());
         }
 
         // GET: ExpenseType/Details/5
         [RequireHttps]
-        [Authorize]
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -80,35 +63,30 @@ namespace ExpenseLog.Controllers
 
         // GET: ExpenseType/Create
         [RequireHttps]
-        [Authorize]
         public ActionResult Create()
         {
             return View();
         }
 
         // POST: ExpenseType/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
-        public ActionResult Create([Bind(Include = "ID,Title")] ExpenseType ExpenseType)
+        public ActionResult Create([Bind(Include = "Title")] ExpenseType expenseType)
         {
             if (ModelState.IsValid)
             {
-                ExpenseType.UserId = User.Identity.GetUserId();
-                db.ExpenseTypes.Add(ExpenseType);
+                expenseType.UserId = User.Identity.GetUserId();
+                db.ExpenseTypes.Add(expenseType);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
 
-            return View(ExpenseType);
+            return View(expenseType);
         }
 
         // GET: ExpenseType/Edit/5
         [RequireHttps]
-        [Authorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -124,27 +102,23 @@ namespace ExpenseLog.Controllers
         }
 
         // POST: ExpenseType/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
-        public ActionResult Edit([Bind(Include = "ID,Title")] ExpenseType ExpenseType)
+        public ActionResult Edit([Bind(Include = "ID,Title")] ExpenseType expenseType)
         {
             if (ModelState.IsValid)
             {
-                ExpenseType.UserId = User.Identity.GetUserId();
-                db.Entry(ExpenseType).State = EntityState.Modified;
+                expenseType.UserId = User.Identity.GetUserId();
+                db.Entry(expenseType).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            return View(ExpenseType);
+            return View(expenseType);
         }
 
         // GET: ExpenseType/Delete/5
         [RequireHttps]
-        [Authorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -157,7 +131,7 @@ namespace ExpenseLog.Controllers
             {
                 return HttpNotFound();
             }
-            string expenseTypeTitle = expenseType.Title;
+            
             try
             {
                 db.ExpenseTypes.Remove(expenseType);

@@ -54,40 +54,23 @@ namespace ContosoUniversity.Controllers
             return View(items.ToList());
         }
 
-        // GET: ExpenseEntity/Details/5
-        [RequireHttps]
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            ExpenseEntity expenseEntity = db.ExpenseEntities.Find(id);
-            if (expenseEntity == null)
-            {
-                return HttpNotFound();
-            }
-            return View(expenseEntity);
-        }
-
         // GET: ExpenseEntity/Create
         [RequireHttps]
         [Authorize]
         public ActionResult Create()
         {
             string userId = User.Identity.GetUserId();
+            //--- prepare the "select list" of expense types for the "Type" combobox
             ViewBag.ExpenseTypeID = new SelectList(db.ExpenseTypes.Where(x => x.UserId == userId), "ID", "Title");
             return View();
         }
 
         // POST: ExpenseEntity/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Create([Bind(Include = "ID,UserId,ExpenseTypeID,ExpenseEntityName,ExpenseEntityDescription")] ExpenseEntity expenseEntity)
+        public ActionResult Create([Bind(Include = "ID,ExpenseTypeID,ExpenseEntityName,ExpenseEntityDescription")] ExpenseEntity expenseEntity)
         {
             string userId = User.Identity.GetUserId();
             if (ModelState.IsValid)
@@ -97,6 +80,7 @@ namespace ContosoUniversity.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+            //--- if the model is not valid, show the same create new form
             ViewBag.ExpenseTypeID = new SelectList(db.ExpenseTypes.Where(x => x.UserId == userId), "ID", "Title", expenseEntity.ExpenseTypeID);
             return View(expenseEntity);
         }
@@ -116,18 +100,17 @@ namespace ContosoUniversity.Controllers
             {
                 return HttpNotFound();
             }
+            //--- prepare the "select list" of expense types for the "Type" combobox and select the current type
             ViewBag.ExpenseTypeID = new SelectList(db.ExpenseTypes.Where(x => x.UserId == userId), "ID", "Title", expenseEntity.ExpenseTypeID);
             return View(expenseEntity);
         }
 
         // POST: ExpenseEntity/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [RequireHttps]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit([Bind(Include = "ID,UserId,ExpenseTypeID,ExpenseEntityName,ExpenseEntityDescription")] ExpenseEntity expenseEntity)
+        public ActionResult Edit([Bind(Include = "ID,ExpenseTypeID,ExpenseEntityName,ExpenseEntityDescription")] ExpenseEntity expenseEntity)
         {
             string userId = User.Identity.GetUserId();
             if (ModelState.IsValid)
@@ -137,6 +120,7 @@ namespace ContosoUniversity.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+            //--- if the model is not valid, show the same edit form
             ViewBag.ExpenseTypeID = new SelectList(db.ExpenseTypes.Where(x => x.UserId == userId), "ID", "Title", expenseEntity.ExpenseTypeID);
             return View(expenseEntity);
         }
@@ -182,8 +166,6 @@ namespace ContosoUniversity.Controllers
                 return View("Edit", expenseEntity);
             }
         }
-
-      
 
         protected override void Dispose(bool disposing)
         {
