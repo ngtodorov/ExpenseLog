@@ -23,7 +23,7 @@ namespace ExpenseLog.Controllers
         
         // GET: ExpenseType
         [RequireHttps]
-        public ActionResult Index(string sortOrder)
+        public ActionResult Index()
         {
             string userId = User.Identity.GetUserId();
 
