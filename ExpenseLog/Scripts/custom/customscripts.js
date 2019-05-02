@@ -102,29 +102,23 @@ $(document).ready(function () {
         return true;
     });
 
+    //------------------------------------------------------
+    //---------------- DATATABLES --------------------------
+    //------------------------------------------------------
+    $("#dataTable").DataTable({
+        "paging": false,
+        "responsive": true,
+        "searching": false,     // Search Box will Be Disabled
+        "ordering": true,       // Ordering (Sorting on Each Column)will Be Disabled
+        "info": false,          // Will show "1 to n of n entries" Text at bottom
+        "lengthChange": false,  // Will Disabled Record number per page
+        "paginate": {
+            "next": ">",
+            "previous": "<"
+        },
 
-    //$("#createExpenseRecordLink").click(function onClick(event) {
-    //    event.preventDefault();
 
-    //    var fromDateFilter = $("#fromDateFilter").val();
-    //    var toDateFilter = $("#toDateFilter").val();
-    //    //var descriptionSearchFilter = $("descriptionSearchFilter").val();
 
-    //    $.ajax({
-    //        type: 'GET',
-    //        dataType: 'json',
-    //        cache : false,
-    //        url: '/ExpenseRecord/Create',
-    //        data: { 'fromDateFilter': fromDateFilter, 'toDateFilter': toDateFilter},
-    //        success: function (d) {
-    //            alert(d);
-    //        },
-    //        error: function (jqXHR, textStatus, errorThrown) {
-    //            if (jqXHR.status!="200")
-    //                alert("Error executing GET action /ExpenseRecord/Create.\nStatus Code: " + jqXHR.status + "\nStatus Text: " + jqXHR.statusText + "\nMessage: " + jqXHR.responseText);
-    //        }
-    //    });
-
-    //});
+    });
 
 });

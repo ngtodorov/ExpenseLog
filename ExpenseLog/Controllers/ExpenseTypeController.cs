@@ -29,19 +29,6 @@ namespace ExpenseLog.Controllers
 
             var items = db.ExpenseTypes.Where(x => x.UserId == userId);
 
-            #region Column Ordering
-            ViewBag.TitleSortParm = (String.IsNullOrEmpty(sortOrder) || sortOrder == "Title") ? "Title_desc" : "Title";
-            switch (sortOrder)
-            {
-                case "Title_desc":
-                    items = items.OrderByDescending(s => s.Title);
-                    break;
-                default:
-                    items = items.OrderBy(s => s.Title);
-                    break;
-            }
-            #endregion
-
             return View(items.ToList());
         }
 

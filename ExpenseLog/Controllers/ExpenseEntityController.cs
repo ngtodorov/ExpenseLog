@@ -24,33 +24,6 @@ namespace ContosoUniversity.Controllers
             string userId = User.Identity.GetUserId();
             var items = db.ExpenseEntities.Where(x => x.UserId == userId).Include(a=>a.ExpenseType);
 
-            #region Column Ordering
-            ViewBag.TypeSortParm = (String.IsNullOrEmpty(sortOrder)|| sortOrder == "Type") ? "Type_desc" : "Type";
-            ViewBag.NameSortParm = sortOrder == "Entity"? "Entity_desc" : "Entity";
-            ViewBag.DescrSortParm = sortOrder == "Description" ? "descr_desc" : "Description";
-            switch (sortOrder)
-            {
-                case "Type_desc":
-                    items = items.OrderByDescending(s => s.ExpenseType.Title);
-                    break;
-                case "Entity":
-                    items = items.OrderBy(s => s.ExpenseEntityName);
-                    break;
-                case "Entity_desc":
-                    items = items.OrderByDescending(s => s.ExpenseEntityName);
-                    break;
-                case "Description":
-                    items = items.OrderBy(s => s.ExpenseEntityDescription);
-                    break;
-                case "descr_desc":
-                    items = items.OrderByDescending(s => s.ExpenseEntityDescription);
-                    break;
-                default:
-                    items = items.OrderBy(s => s.ExpenseType.Title);
-                    break;
-            }
-            #endregion
-
             return View(items.ToList());
         }
 

@@ -1,39 +1,44 @@
 ﻿@model IEnumerable<ExpenseLog.Models.ExpenseType>
 
 @{
-    ViewBag.Title = "ExpenseTypes";
+                /**/
+
+                ViewBag.Title = "ExpenseTypes";
 }
 
 <h4>Expense Types</h4>
 
 
-<hr />
 
-<table class="table table-striped table-bordered table-hover table-sm">
-    <tr>
-        <th style="width:10px">
+    <table class="table table-striped table-bordered table-hover table-sm" id="table1" name="table1" style="width:100%">
+            <tr style="color:dodgerblue">
+                <th style="width:10px">
 
-            @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
-        </th>
-        <th>
-            @Html.ActionLink("Expense Type", "Index", new { sortOrder = ViewBag.TitleSortParm })
-        </th>
+                    @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
+                </th>
+                <th>
+                    @Html.DisplayName("Expense Type")
+                </th>
 
 
-    </tr>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <!-- Edit Button -->
+                        @Html.ActionLink("[]", "Edit", "ExpenseType", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Type" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
 
-    @foreach (var item in Model)
-    {
-    <tr>
-        <td>
-            <!-- Edit Button -->
-            @Html.ActionLink("[]", "Edit", "ExpenseType", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Type" })
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Title)
-        </td>
+                </tr>
+            }
+    </table>
 
-    </tr>
-    }
+@section Scripts {
 
-</table>
+    @Scripts.Render("~/Scripts/custom/customscripts.js")
+
+}

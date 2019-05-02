@@ -23,8 +23,10 @@ namespace ExpenseLog.Models
 
         [Required]
         [Display(Name = "Type")]
+        [Range(typeof(int), "1", "9999999", ErrorMessage = "Expensty Type is required")]
         public int ExpenseTypeID { get; set; }
-        
+
+        [Required]
         [Display(Name = "Type")]
         public virtual ExpenseType ExpenseType { get; set; }
 

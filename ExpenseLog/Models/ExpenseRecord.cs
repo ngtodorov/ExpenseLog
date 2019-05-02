@@ -12,10 +12,12 @@ namespace ExpenseLog.Models
 
         [Required]
         [Display(Name = "Type")]
+        [Range(typeof(int), "1", "9999999", ErrorMessage = "Select expense type.")]
         public int ExpenseTypeID { get; set; }
 
         [Required]
         [Display(Name = "Entity")]
+        [Range(typeof(int), "1", "9999999", ErrorMessage ="Select expense entity.")]
         public int ExpenseEntityID { get; set; }
 
         [Required]

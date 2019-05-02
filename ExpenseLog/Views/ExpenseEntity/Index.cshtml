@@ -1,44 +1,51 @@
 ﻿@model IEnumerable<ExpenseLog.Models.ExpenseEntity>
 
 @{
+    /**/
+
     ViewBag.Title = "Index";
 }
 
 <h4>Expense Entities</h4>
-<hr />
-<table class="table table-striped table-bordered table-hover table-sm">
-    <tr>
-        <th style="width:10px">
-            @Html.ActionLink("+", "Create", "ExpenseEntity", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Entity" })
-        </th>
-        <th>
-            @Html.ActionLink("Type", "Index", new { sortOrder = ViewBag.TypeSortParm } )
-        </th>
-        <th>
-            @Html.ActionLink("Entity", "Index", new { sortOrder = ViewBag.NameSortParm })
-        </th>
-        <th>
-            @Html.ActionLink("Description", "Index", new { sortOrder = ViewBag.DescrSortParm })
-        </th>
-    </tr>
 
-    @foreach (var item in Model)
-    {
-    <tr>
-        <td>
-            <!-- Edit Button -->
-            @Html.ActionLink("[]", "Edit", "ExpenseEntity", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Entity" })
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ExpenseType.Title)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ExpenseEntityName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ExpenseEntityDescription)
-        </td>
-    </tr>
+<table class="table table-striped table-bordered table-hover table-sm" id="table1" name="table1" style="width:100%">
+        
+            <tr style="color:dodgerblue">
+                <th>
+                    @Html.ActionLink("+", "Create", "ExpenseEntity", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Entity" })
+                </th>
+                <th>
+                    @Html.DisplayName("Type")
+                </th>
+                <th>
+                    @Html.DisplayName("Entity")
+                </th>
+                <th>
+                    @Html.DisplayName("Description")
+                </th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <!-- Edit Button -->
+                        @Html.ActionLink("[]", "Edit", "ExpenseEntity", new { id = item.ID }, new { @class = "btn btn-outline-primary btn-sm", title = "Edit Entity" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ExpenseType.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ExpenseEntityName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ExpenseEntityDescription)
+                    </td>
+                </tr>
+            }
+        
+    </table>
+
+    @section Scripts {
+
+
     }
-
-</table>
