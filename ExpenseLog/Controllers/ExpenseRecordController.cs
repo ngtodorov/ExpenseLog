@@ -35,7 +35,7 @@ namespace ExpenseLog.Controllers
             #region Read the filter values
 
             if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
-                filterDateFrom = DateTime.Today.AddMonths(-1);
+                filterDateFrom = DateTime.Today.AddMonths(-12);
 
             if (!DateTime.TryParse(toDateFilter, out DateTime filterDateTo))
                 filterDateTo = DateTime.Today;
