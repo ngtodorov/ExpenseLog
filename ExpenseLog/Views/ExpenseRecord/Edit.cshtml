@@ -14,6 +14,7 @@
     @Html.Hidden("FilterDateFrom", (object)ViewBag.FilterDateFrom)
     @Html.Hidden("FilterDateTo", (object)ViewBag.FilterDateTo)
     @Html.Hidden("FilterDescriptionSearch", (object)ViewBag.FilterDescriptionSearch)
+    @Html.Hidden("SortOrder", (object)ViewBag.SortOrder)
 
     <div class="form-horizontal">
         <h4>Edit Expense Record</h4>
@@ -87,7 +88,7 @@
             <div class="row">
                 @{
                     int i = 0;
-                    foreach(ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
+                    foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
                     {
                         i++;
                         <div class="column">
@@ -173,7 +174,7 @@
                 button.title = "Marked for deletion. Click to restore"
 
                 if (filesToDelete.indexOf(attachIDStr) < 0) {
-                    document.getElementById("FilesToDelete").value = filesToDelete + attachIDStr; //--- add to the "delete files" list 
+                    document.getElementById("FilesToDelete").value = filesToDelete + attachIDStr; //--- add to the "delete files" list
                 }
             }
             else {

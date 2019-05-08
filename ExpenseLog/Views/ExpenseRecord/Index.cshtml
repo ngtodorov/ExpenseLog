@@ -28,7 +28,7 @@
             </div>
             <div class="col-sm">
                 <input class="btn btn-outline-primary btn-sm" type="submit" value="Filter" />
-                @Html.ActionLink("Excel", "ExportToExcel", "ExpenseRecord", null, new { @class = "btn btn-outline-primary btn-sm" })
+                @Html.ActionLink("Excel", "ExportToExcel", "ExpenseRecord", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.SortOrder } , new { @class = "btn btn-outline-primary btn-sm" })
             </div>
         </div>
     </div>
@@ -40,19 +40,19 @@
     
         <tr>
             <th style="width:10px">
-                @Html.ActionLink("+", "Create", "ExpenseRecord", new { expenseTypeIDFilter=ViewBag.FilterExpenseTypeID, expenseEntityIDFilter=ViewBag.FilterExpenseEntityID, fromDateFilter=ViewBag.FilterDateFrom, toDateFilter=ViewBag.FilterDateTo, descriptionSearchFilter=ViewBag.FilterDescriptionSearch }, new { @class = "btn btn-outline-primary btn-sm", title = "New Record", id = "createExpenseRecordLink" })
+                @Html.ActionLink("+", "Create", "ExpenseRecord", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.SortOrder }, new { @class = "btn btn-outline-primary btn-sm", title = "New Record", id = "createExpenseRecordLink" })
             </th>
             <th>
-                @Html.ActionLink("Date", "Index", new { sortOrder = ViewBag.DateSortParam })
+                @Html.ActionLink("Date", "Index", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.DateSortParam })
             </th>
             <th>
-                @Html.ActionLink("Entity", "Index", new { sortOrder = ViewBag.NameSortParam })
+                @Html.ActionLink("Entity", "Index", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.NameSortParam })
             </th>
             <th>
-                @Html.ActionLink("Description", "Index", new { sortOrder = ViewBag.DescrSortParam })
+                @Html.ActionLink("Description", "Index", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.DescrSortParam })
             </th>
             <th>
-                @Html.ActionLink("Price", "Index", new { sortOrder = ViewBag.PriceSortParam })
+                @Html.ActionLink("Price", "Index", new { expenseTypeIDFilter = ViewBag.FilterExpenseTypeID, expenseEntityIDFilter = ViewBag.FilterExpenseEntityID, fromDateFilter = ViewBag.FilterDateFrom, toDateFilter = ViewBag.FilterDateTo, descriptionSearchFilter = ViewBag.FilterDescriptionSearch, sortOrder = ViewBag.PriceSortParam })
             </th>
 
             <th>
@@ -71,7 +71,8 @@
                         expenseEntityIDFilter = ViewBag.FilterExpenseEntityID,
                         fromDateFilter = ViewBag.FilterDateFrom,
                         toDateFilter = ViewBag.FilterDateTo,
-                        descriptionSearchFilter = ViewBag.FilterDescriptionSearch},
+                        descriptionSearchFilter = ViewBag.FilterDescriptionSearch,
+                        sortOrder = ViewBag.SortOrder},
                     new { @class = "btn btn-outline-primary btn-sm",
                         @title = "Edit Record", id = "editExpenseRecordLink" + @item.ExpenseRecordID })
             </td>

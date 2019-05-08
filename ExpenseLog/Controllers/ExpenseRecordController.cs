@@ -26,39 +26,17 @@ namespace ExpenseLog.Controllers
     {
         private ExpenseLogContext db = new ExpenseLogContext();
 
+        #region Controler Actions
+
         // GET: ExpenseRecord
         [RequireHttps]
         public ActionResult Index(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter,  string sortOrder, string descriptionSearchFilter)
         {
+            IQueryable<ExpenseRecord> expenseRecords;
+
             string userId = User.Identity.GetUserId();
 
-            #region Read the filter values
-
-            if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
-                filterDateFrom = DateTime.Today.AddMonths(-12);
-
-            if (!DateTime.TryParse(toDateFilter, out DateTime filterDateTo))
-                filterDateTo = DateTime.Today;
-
-            int filterExpenseTypeID = string.IsNullOrEmpty(expenseTypeIDFilter) ? 0 : int.Parse(expenseTypeIDFilter);
-            int filterExpenseEntityID = string.IsNullOrEmpty(expenseEntityIDFilter) ? 0 : int.Parse(expenseEntityIDFilter);
-
-            //--- Set current filter selections into ViewBag
-            SetFilter2ViewBag(filterExpenseTypeID.ToString(), filterExpenseEntityID.ToString(), filterDateFrom.ToString("MM/dd/yyyy"), filterDateTo.ToString("MM/dd/yyyy"), descriptionSearchFilter);
-
-            #endregion
-
-            #region Filter expense records
-            var expenseRecords = db.ExpenseRecords
-                .Where(x => x.UserId == userId
-                        && x.ExpenseDate >= filterDateFrom
-                        && x.ExpenseDate <= filterDateTo
-                        && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)
-                        && (filterExpenseEntityID == 0 || x.ExpenseEntityID == filterExpenseEntityID)
-                        && (String.IsNullOrEmpty(descriptionSearchFilter) || x.ExpenseDescription.IndexOf(descriptionSearchFilter) >= 0))
-                .Include(e => e.ExpenseEntity)
-                .Include(e => e.ExpenseType);
-            #endregion
+            int filterExpenseTypeID = FilterExpenseRecords(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter, userId, sortOrder, out expenseRecords);
 
             #region Calculate total expenses
             if (expenseRecords != null && expenseRecords.ToList().Count > 0)
@@ -67,7 +45,6 @@ namespace ExpenseLog.Controllers
                 ViewBag.Total = 0;
             #endregion
 
-            expenseRecords = ApplyOrderBy(sortOrder, expenseRecords);
             SetExpenseTypeList2ViewBag(userId);
             SetExpenseEntityList2ViewBag(userId, filterExpenseTypeID);
 
@@ -77,7 +54,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord/Create
         [RequireHttps]
         [Authorize]
-        public ActionResult Create(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter)
+        public ActionResult Create(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter, string sortOrder)
         {
             try
             {
@@ -85,7 +62,7 @@ namespace ExpenseLog.Controllers
                 SetVariables2ViewBag();
                 
                 //--- Set current filter selections into ViewBag
-                SetFilter2ViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter);
+                SetFilter2ViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter, sortOrder);
 
                 return View();
             }
@@ -145,7 +122,7 @@ namespace ExpenseLog.Controllers
         // GET: ExpenseRecord/Edit/5
         [RequireHttps]
         [Authorize]
-        public ActionResult Edit(int? id, string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter)
+        public ActionResult Edit(int? id, string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter, string sortOrder)
         {
             if (id == null)
             {
@@ -158,7 +135,7 @@ namespace ExpenseLog.Controllers
             }
 
             //--- Set current filter selections into ViewBag
-            SetFilter2ViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter);
+            SetFilter2ViewBag(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter, sortOrder);
 
             SetVariables2ViewBag(expenseRecord);
 
@@ -268,38 +245,53 @@ namespace ExpenseLog.Controllers
         // GET: ExportData
         [Authorize]
         [RequireHttps]
-        public ActionResult ExportToExcel()
+        public ActionResult ExportToExcel(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string sortOrder, string descriptionSearchFilter)
         {
+            string userId = User.Identity.GetUserId();
+
+            //--- Filter Expense Records
+            IQueryable<ExpenseRecord> expenseRecords;
+            FilterExpenseRecords(expenseTypeIDFilter, expenseEntityIDFilter, fromDateFilter, toDateFilter, descriptionSearchFilter, userId, sortOrder, out expenseRecords);
+
             //--- Set the data source
-            GridView gridview = new GridView
+            GridView gridView = new GridView
             {
-                DataSource = db.ExpenseRecords.ToList()
+                DataSource = expenseRecords.Select(x=> new {
+                    Date = x.ExpenseDate,
+                    Entity = x.ExpenseEntity.ExpenseEntityName,
+                    Description = x.ExpenseDescription,
+                    Price = x.ExpensePrice,
+                    LogDate = x.ExpenseLogDate
+                }).ToList()
             };
-            gridview.DataBind();
+            gridView.DataBind();
 
             //--- Clear all the content from the current response
             Response.ClearContent();
             Response.Buffer = true;
+            
             //--- Set the header
-            Response.AddHeader("content-disposition", "attachment;filename = itfunda.xls");
+            Response.AddHeader("content-disposition", $"attachment;filename = ExpenseRecords{DateTime.Now.ToString("yyMMddhhmmssfff")}.xls");
             Response.ContentType = "application/ms-excel";
             Response.Charset = "";
 
             //--- Create HtmlTextWriter object with StringWriter
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter stringWriter = new StringWriter())
             {
-                using (HtmlTextWriter htw = new HtmlTextWriter(sw))
+                using (HtmlTextWriter htmlTextWriter = new HtmlTextWriter(stringWriter))
                 {
                     //--- Render the GridView to the HtmlTextWriter
-                    gridview.RenderControl(htw);
+                    gridView.RenderControl(htmlTextWriter);
                     //--- Output the GridView content saved into StringWriter
-                    Response.Output.Write(sw.ToString());
+                    Response.Output.Write(stringWriter.ToString());
                     Response.Flush();
                     Response.End();
                 }
             }
             return View();
         }
+
+        #endregion
 
         #region Helpers
 
@@ -361,26 +353,6 @@ namespace ExpenseLog.Controllers
             return result;
         }
 
-        private async Task<bool> DeleteAttachmentFilesAsync(IEnumerable<string> attachments)
-        {
-            ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
-
-            string attachmentNameListJson = utils.Encrypt(JsonConvert.SerializeObject(attachments));
-
-            using (HttpClient client = new HttpClient())
-            {
-                using (var content = new MultipartFormDataContent())
-                {
-                    content.Add(new StringContent(attachmentNameListJson, Encoding.UTF8, "application/json"), "attachmentNameList");
-                    string requestUri = $"{utils.GetAppSetting("EL_EXPENSE_LOG_WEB_API_URI")}api/attachment/delete";
-
-                    HttpResponseMessage result = await client.PostAsync(requestUri, content);
-
-                    return (result.StatusCode == System.Net.HttpStatusCode.OK);
-                }
-            }
-        }
-
         private void SetVariables2ViewBag(ExpenseRecord expenseRecord = null)
         {
             //--- Get current user
@@ -399,7 +371,7 @@ namespace ExpenseLog.Controllers
             SetViewBagSelectLists(userId, expenseRecord);
         }
 
-        private void SetFilter2ViewBag(string filterExpenseTypeID, string filterExpenseEntityID, string filterDateFrom, string filterDateTo, string filterDescriptionSearch)
+        private void SetFilter2ViewBag(string filterExpenseTypeID, string filterExpenseEntityID, string filterDateFrom, string filterDateTo, string filterDescriptionSearch, string sortOrder)
         {
             //--- Save Filter to ViewBag
             ViewBag.FilterExpenseTypeID = filterExpenseTypeID;
@@ -407,38 +379,48 @@ namespace ExpenseLog.Controllers
             ViewBag.FilterDateFrom = filterDateFrom;
             ViewBag.FilterDateTo = filterDateTo;
             ViewBag.FilterDescriptionSearch = filterDescriptionSearch;
+            ViewBag.SortOrder = sortOrder;
         }
 
-        private async Task DeleteSelectedAttachmentFilesAsync(int expenseRecordID)
+        private int FilterExpenseRecords(string expenseTypeIDFilter, string expenseEntityIDFilter, string fromDateFilter, string toDateFilter, string descriptionSearchFilter, string userId, string sortOrder, out IQueryable<ExpenseRecord> expenseRecords)
         {
-            if (Request["FilesToDelete"] != null)
-            {
-                string filesToDelete = Request["FilesToDelete"];
-                if (filesToDelete != String.Empty)
-                {
-                    //--- select those attachments that are listed for deletion
-                    List<ExpenseAttachment> attachmentsToDelete =
-                        db.ExpenseRecords
-                        .Where(x => x.ExpenseRecordID == expenseRecordID)
-                        .Include("ExpenseAttachments")
-                        .FirstOrDefault()
-                        .ExpenseAttachments
-                        .Where(x => filesToDelete.Contains($"[{x.ID}]"))
-                        .ToList();
 
-                    //--- delete selected attachment files
-                    await DeleteAttachmentFilesAsync(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
+            #region Read the filter values
 
-                    //--- delete selected attachment records
-                    foreach (ExpenseAttachment attachment in attachmentsToDelete)
-                    {
-                        db.ExpenseAttachments.Remove(attachment);
-                    }
-                }
-            }
+            if (!DateTime.TryParse(fromDateFilter, out DateTime filterDateFrom))
+                filterDateFrom = DateTime.Today.AddMonths(-12);
+
+            if (!DateTime.TryParse(toDateFilter, out DateTime filterDateTo))
+                filterDateTo = DateTime.Today;
+
+            int filterExpenseTypeID = string.IsNullOrEmpty(expenseTypeIDFilter) ? 0 : int.Parse(expenseTypeIDFilter);
+            int filterExpenseEntityID = string.IsNullOrEmpty(expenseEntityIDFilter) ? 0 : int.Parse(expenseEntityIDFilter);
+
+            //--- Set current filter selections into ViewBag
+            SetFilter2ViewBag(filterExpenseTypeID.ToString(), filterExpenseEntityID.ToString(), filterDateFrom.ToString("MM/dd/yyyy"), filterDateTo.ToString("MM/dd/yyyy"), descriptionSearchFilter, sortOrder);
+
+            #endregion
+
+            #region Filter expense records
+            expenseRecords = db.ExpenseRecords
+                .Where(x => x.UserId == userId
+                        && x.ExpenseDate >= filterDateFrom
+                        && x.ExpenseDate <= filterDateTo
+                        && (filterExpenseTypeID == 0 || x.ExpenseTypeID == filterExpenseTypeID)
+                        && (filterExpenseEntityID == 0 || x.ExpenseEntityID == filterExpenseEntityID)
+                        && (String.IsNullOrEmpty(descriptionSearchFilter) || x.ExpenseDescription.IndexOf(descriptionSearchFilter) >= 0))
+                .Include(e => e.ExpenseEntity)
+                .Include(e => e.ExpenseType);
+            #endregion
+
+            #region Apply Order By
+            ApplyOrderBy(sortOrder, ref expenseRecords);
+            #endregion
+
+            return filterExpenseTypeID;
         }
 
-        private IQueryable<ExpenseRecord> ApplyOrderBy(string sortOrder, IQueryable<ExpenseRecord> expenseRecords)
+        private void ApplyOrderBy(string sortOrder, ref IQueryable<ExpenseRecord> expenseRecords)
         {
             ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "Entity_Desc" : "";
             ViewBag.DescrSortParam = sortOrder == "Description" ? "Description_Desc" : "Description";
@@ -473,9 +455,7 @@ namespace ExpenseLog.Controllers
                     break;
             }
 
-            return expenseRecords;
         }
-
         
         private void SetExpenseEntityList2ViewBag(string userId, int filterExpenseTypeID)
         {
@@ -517,9 +497,60 @@ namespace ExpenseLog.Controllers
                 expenseEntityIDFilter = Request["FilterExpenseEntityID"],
                 fromDateFilter = Request["FilterDateFrom"],
                 toDateFilter = Request["FilterDateTo"],
-                descriptionSearchFilter = Request["FilterDescriptionSearch"]
+                descriptionSearchFilter = Request["FilterDescriptionSearch"],
+                sortOrder = Request["SortOrder"]
             };
         }
+
+        private async Task<bool> DeleteAttachmentFilesAsync(IEnumerable<string> attachments)
+        {
+            ExpenseLogCommon.Utils utils = new ExpenseLogCommon.Utils();
+
+            string attachmentNameListJson = utils.Encrypt(JsonConvert.SerializeObject(attachments));
+
+            using (HttpClient client = new HttpClient())
+            {
+                using (var content = new MultipartFormDataContent())
+                {
+                    content.Add(new StringContent(attachmentNameListJson, Encoding.UTF8, "application/json"), "attachmentNameList");
+                    string requestUri = $"{utils.GetAppSetting("EL_EXPENSE_LOG_WEB_API_URI")}api/attachment/delete";
+
+                    HttpResponseMessage result = await client.PostAsync(requestUri, content);
+
+                    return (result.StatusCode == System.Net.HttpStatusCode.OK);
+                }
+            }
+        }
+
+        private async Task DeleteSelectedAttachmentFilesAsync(int expenseRecordID)
+        {
+            if (Request["FilesToDelete"] != null)
+            {
+                string filesToDelete = Request["FilesToDelete"];
+                if (filesToDelete != String.Empty)
+                {
+                    //--- select those attachments that are listed for deletion
+                    List<ExpenseAttachment> attachmentsToDelete =
+                        db.ExpenseRecords
+                        .Where(x => x.ExpenseRecordID == expenseRecordID)
+                        .Include("ExpenseAttachments")
+                        .FirstOrDefault()
+                        .ExpenseAttachments
+                        .Where(x => filesToDelete.Contains($"[{x.ID}]"))
+                        .ToList();
+
+                    //--- delete selected attachment files
+                    await DeleteAttachmentFilesAsync(attachmentsToDelete.Select(x => x.ExpenseAttachmentName));
+
+                    //--- delete selected attachment records
+                    foreach (ExpenseAttachment attachment in attachmentsToDelete)
+                    {
+                        db.ExpenseAttachments.Remove(attachment);
+                    }
+                }
+            }
+        }
+
 
         #endregion
     }
