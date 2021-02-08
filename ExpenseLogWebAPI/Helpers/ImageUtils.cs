@@ -51,15 +51,19 @@ namespace ExpenseLogWebAPI.Helpers
                 //--- Unlock the bits
                 bitmap.UnlockBits(bitmapData);
 
-                //--- Encode to JPEG
-                EncoderParameters encoderParameters = new EncoderParameters(1);
-                encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 60L);
+                //Bitmap Result = bitmap.Clone(new Rectangle(0, 0, bitmap.Width, bitmap.Height), PixelFormat.Format8bppIndexed);
 
-                //--- Stream back the result
-                using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
+                //--- Encode to JPEG
+                using (EncoderParameters encoderParameters = new EncoderParameters(1))
                 {
-                    bitmap.Save(memoryStream, GetEncoder(ImageFormat.Jpeg), encoderParameters);
-                    return memoryStream.ToArray();
+                    encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 60L);
+
+                    //--- Stream back the result
+                    using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
+                    {
+                        bitmap.Save(memoryStream, GetEncoder(ImageFormat.Jpeg), encoderParameters);
+                        return memoryStream.ToArray();
+                    }
                 }
             }
             catch (Exception ex)
