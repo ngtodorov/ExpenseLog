@@ -67,7 +67,7 @@
                     <!-- Delete Button -->
                     @Html.ActionLink("Delete", "Delete", "ExpenseRecord", new { id = Model.ExpenseRecordID }, new { @class = "btn btn-outline-primary btn-sm", title = "Delete Record", onclick = "return confirm('Are you sure you wish to delete this Expense Record?');", @id = "buttonDelete" })
                     <!-- Select Files and Upload: Displays a 'Select Files' button that uses a File Upload control to select files to be uploaded and calls the JS function: DisplayFilesToUpload() that lists the file name and size for all files to be uploaded.                   -->
-                    <input type="file" id="file" name="selectFiles" class="btn btn-outline-primary btn-sm" onchange="DisplayFilesToUpload()" multiple accept=".png,.jpg,.jpeg,.gif,.tif,.tiff,.bmp" />
+                    <input type="file" id="file" name="selectFiles" class="btn btn-outline-primary btn-sm" onchange="DisplayFilesToUpload()" multiple accept=".png,.jpg,.jpeg,.gif,.tif,.tiff,.bmp,.pdf" />
                 </div>
             </div>
         </div>
@@ -85,19 +85,31 @@
         {
 
             <!-- Images used to open the lightbox -->
-            <div class="row">
-                @{
-                    int i = 0;
-                    foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
-                    {
-                        i++;
-                        <div class="column">
-                            <button id="deleteImageButton-@attachment.ID" type="button" onclick="markAttachmentForDeletion(@attachment.ID); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment">X</button>
-                            <img src="@attachment.ExpenseAttachmentUri" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
-                        </div>
-                    }
+    <div class="row">
+        @{
+            int i = 0;
+            foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
+            {
+                i++;
+
+
+                if (attachment.ExpenseAttachmentType != null && attachment.ExpenseAttachmentType.ToLower().Contains("image"))
+                {
+                    <div class="column">
+                        <button id="deleteImageButton-@attachment.ID" type="button" onclick="markAttachmentForDeletion(@attachment.ID); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment">X</button>
+                        <img src="@attachment.ExpenseAttachmentUri" style="width:100%" onclick="openModal();currentSlide(@i)" class="hover-shadow cursor">
+                    </div>
                 }
-            </div>
+                else
+                {
+                    <div class="column">
+                        <button id="deleteImageButton-@attachment.ID" type="button" onclick="markAttachmentForDeletion(@attachment.ID); return false;" class="btn btn-outline-primary btn-sm" title="Click to delete attachment">X</button>
+                        <a href="@attachment.ExpenseAttachmentUri">@attachment.ExpenseAttachmentOriginalName</a>
+                    </div>
+                }
+            }
+        }
+    </div>
 
             <!-- The Modal/Lightbox -->
             <div id="myModal" class="modal">
@@ -106,11 +118,11 @@
                     @{
 
                         int k = 0;
-                        foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments)
+                        foreach (ExpenseLog.Models.ExpenseAttachment attachment in Model.ExpenseAttachments.Where(x=>x.ExpenseAttachmentType.ToLower().Contains("image")))
                         {
                             k++;
                             <div class="mySlides">
-                                <div class="numbertext">@k / @Model.ExpenseAttachments.Count</div>
+                                <div class="numbertext">@k / @Model.ExpenseAttachments.Count(x => x.ExpenseAttachmentType.ToLower().Contains("image"))</div>
                                 <img src="@attachment.ExpenseAttachmentUri" style="width:100%">
                             </div>
                         }
