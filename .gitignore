@@ -259,3 +259,4 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/ExpenseLog/bin_2019-05-07
