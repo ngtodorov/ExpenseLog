@@ -11,17 +11,21 @@
 
 
     <table class="table table-striped table-bordered table-hover table-sm" id="table1" name="table1" style="width:100%">
-            <tr style="color:dodgerblue">
-                <th style="width:10px">
+        <tr style="color:dodgerblue">
+            <th style="width:10px">
+                @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
+            </th>
+            <th>
+                @Html.DisplayName("Expense Type")
+            </th>
+            <th>
+                @Html.DisplayName("Entities")
+            </th>
+            <th>
+                @Html.DisplayName("Records")
+            </th>
 
-                    @Html.ActionLink("+", "Create", "ExpenseType", null, new { @class = "btn btn-outline-primary btn-sm", title = "New Type" })
-                </th>
-                <th>
-                    @Html.DisplayName("Expense Type")
-                </th>
-
-
-            </tr>
+        </tr>
             @foreach (var item in Model)
             {
                 <tr>
@@ -32,7 +36,12 @@
                     <td>
                         @Html.DisplayFor(modelItem => item.Title)
                     </td>
-
+                    <td class="text-right">
+                        @Html.DisplayFor(modelItem => item.ExpenseEntities.Count)
+                    </td>
+                    <td class="text-right">
+                        @Html.DisplayFor(modelItem => item.ExpenseRecords.Count)
+                    </td>
                 </tr>
             }
     </table>

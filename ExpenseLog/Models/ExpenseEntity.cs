@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -31,5 +32,32 @@ namespace ExpenseLog.Models
 
         //navigation property ExpenseRecords
         public virtual ICollection<ExpenseRecord> ExpenseRecords { get; set; }
+
+        public int ExpenseRecordsCount
+        {
+            get
+            {
+                if (this.ExpenseRecords != null)
+                    return ExpenseRecords.Count;
+                else
+                    return 0;
+            }
+        }
+
+        public decimal ExpenseRecordsAmount
+        {
+            get
+            {
+                if (this.ExpenseRecords != null)
+                {
+                    return ExpenseRecords.Sum(x => x.ExpensePrice);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
     }
 }
